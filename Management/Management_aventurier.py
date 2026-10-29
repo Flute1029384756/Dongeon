@@ -2,8 +2,8 @@ import heapq
 import pygame
 
 from Classes_basiques.aventurier import Aventurier
-from Management.Management_Plateau import Manag_Plateau, Tuille_arrivee
-from Autres.Autre import Var_global, Etat_entitee, Action_aventurier
+from Management.Management_Plateau import Manag_Plateau, Tuile_arrivee
+from Autres.Autre import Var_global, Etat_entitee, Action_aventurier, STAT_PV, STAT_DEGAT, STAT_VITESSE_FRAPPE
 
 
 class Manag_aventurier:
@@ -11,14 +11,39 @@ class Manag_aventurier:
         level_max = 4
         list_augmentation_level = [10*x for x in range(1, level_max)]
         print(list_augmentation_level)
-        self.dict_acion_xp_gagne = {
+        self.dict_action_xp_gagne = {
             Action_aventurier.DEPLACEMENT: 1,
             Action_aventurier.FRAPER: 1,
             Action_aventurier.TUER_MONSTRE: 2,
         }
+        self.dict_augmentation_niveau = {
+            1: {
+                STAT_PV: 4,
+                STAT_DEGAT: 1,
+                STAT_VITESSE_FRAPPE: 0
+            },
+            2: {
+                STAT_PV: 4,
+                STAT_DEGAT: 0,
+                STAT_VITESSE_FRAPPE: -200
+            },
+            3: {
+                STAT_PV: 6,
+                STAT_DEGAT: 1,
+                STAT_VITESSE_FRAPPE: -50
+            }
+        }
+
+        self.level_max = level_max
+        self.list_augmentation_level = list_augmentation_level
         self.aventurier = Aventurier(colonne=0, ligne=0,
-                                     list_xp_pour_level=list_augmentation_level,
-                                     level_max=level_max)
+                                     list_xp_pour_level=self.list_augmentation_level,
+                                     level_max=self.level_max)
+
+    def reinitialiser_aventurier(self):
+        self.aventurier = Aventurier(colonne=0, ligne=0,
+                                     list_xp_pour_level=self.list_augmentation_level,
+                                     level_max=self.level_max)
 
     def get_aventurier(self):
         return self.aventurier
@@ -59,7 +84,7 @@ class Manag_aventurier:
             if tuile_actuelle is None:
                 continue
 
-            if isinstance(tuile_actuelle, Tuille_arrivee):
+            if isinstance(tuile_actuelle, Tuile_arrivee):
                 arrivee = pos_actuelle
                 break
 
@@ -69,7 +94,7 @@ class Manag_aventurier:
             for voisin in tuile_actuelle.pos_tuile_suivante:
                 if voisin in grille and not grille[voisin].bloquee and voisin not in visites:
                     tuile_voisine = grille[voisin]
-                    if not isinstance(tuile_voisine, Tuille_arrivee) and (
+                    if not isinstance(tuile_voisine, Tuile_arrivee) and (
                         not tuile_voisine.pos_tuile_suivante or pos_actuelle not in tuile_voisine.pos_tuile_suivante
                     ):
                         continue
@@ -92,7 +117,7 @@ class Manag_aventurier:
 
     def deplacer_aventurier(self, manag_plateau:Manag_Plateau, teleportation:bool=False):
         tuille_actuelle = manag_plateau.get_plateau().grille[self.aventurier.get_position()]
-        if isinstance(tuille_actuelle, Tuille_arrivee):
+        if isinstance(tuille_actuelle, Tuile_arrivee):
             self.aventurier.activer_anim_idle()
             self.aventurier.en_deplacement_continu = False
             return Var_global.FIN_REUSSITE_AVENTURIER
@@ -109,7 +134,11 @@ class Manag_aventurier:
             self.aventurier.get_pos_precedente().changer_pos(pos=pos_actuelle)
             self.placer_aventurier_pos(prochaine_pos, teleportation=teleportation)
 
-        self.aventurier.gagner_experience(self.dict_acion_xp_gagne[Action_aventurier.DEPLACEMENT])
+        if self.aventurier.gagner_experience(self.dict_action_xp_gagne[Action_aventurier.DEPLACEMENT]) == Etat_entitee.LEVEL_UP:
+            level_aventurier = self.aventurier.get_level()
+            self.aventurier.augmenter_statistique(pv_rajoute=self.dict_augmentation_niveau[level_aventurier][STAT_PV],
+                                                  degat=self.dict_augmentation_niveau[level_aventurier][STAT_DEGAT],
+                                                  vitesse_frappe=self.dict_augmentation_niveau[level_aventurier][STAT_VITESSE_FRAPPE])
 
         return Var_global.CONTINUE
 
@@ -131,5 +160,10 @@ class Manag_aventurier:
             return 0
 
     def gagner_experience(self, nb_monstre_frappe, nb_monstre_tue):
-        self.aventurier.gagner_experience(self.dict_acion_xp_gagne[Action_aventurier.FRAPER] * nb_monstre_frappe)
-        self.aventurier.gagner_experience(self.dict_acion_xp_gagne[Action_aventurier.TUER_MONSTRE] * nb_monstre_tue)
+        if ((self.aventurier.gagner_experience(self.dict_action_xp_gagne[Action_aventurier.FRAPER] * nb_monstre_frappe) == Etat_entitee.LEVEL_UP) or
+                (self.aventurier.gagner_experience(self.dict_action_xp_gagne[Action_aventurier.TUER_MONSTRE] * nb_monstre_tue) == Etat_entitee.LEVEL_UP)):
+            level_aventurier = self.aventurier.get_level()
+            self.aventurier.augmenter_statistique(pv_rajoute=self.dict_augmentation_niveau[level_aventurier][STAT_PV],
+                                                  degat=self.dict_augmentation_niveau[level_aventurier][STAT_DEGAT],
+                                                  vitesse_frappe=self.dict_augmentation_niveau[level_aventurier][
+                                                      STAT_VITESSE_FRAPPE])

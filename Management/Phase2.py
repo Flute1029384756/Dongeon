@@ -26,7 +26,9 @@ class Manag_phase2:
         while en_cours:
             for evenement in pygame.event.get():
                 if evenement.type == pygame.QUIT:
-                    return True
+                    return False
+                if evenement.type == pygame.KEYUP and evenement.key == pygame.K_ESCAPE:
+                    return Var_global.FIN_ESCAPE
 
             self.affichage.dessiner(manag_Plateau=Management_secondaire[MANAG_PLATEAU],
                                     manag_aventurier=Management_secondaire[MANAG_AVENTURIER],

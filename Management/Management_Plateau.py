@@ -7,6 +7,7 @@ from Autres.Autre import (
     COIN,
     TRIANGLE,
     CUL_DE_SAC,
+    CELLULE_VIDE
 )
 
 class Manag_Plateau:
@@ -30,15 +31,15 @@ class Manag_Plateau:
     def placement_piece(self, numero, pos:list, orientation=None):
         if numero == DEPART:
             for pos_cle, cellule in self.Plateau.grille.items():
-                if isinstance(cellule, Tuille_depart):
+                if isinstance(cellule, Tuile_depart):
                     self.Plateau.grille[pos_cle] = Cellule_vide(colonne=cellule.colonne,
                                                                 ligne=cellule.ligne,
                                                                 taille=self.Plateau.taille_cellule)
-            piece_cree = Tuille_depart(colonne=pos[0],
-                                       ligne=pos[1],
-                                       taille=self.Plateau.taille_cellule)
+            piece_cree = Tuile_depart(colonne=pos[0],
+                                      ligne=pos[1],
+                                      taille=self.Plateau.taille_cellule)
         elif numero == ARRIVEE:
-            piece_cree = Tuille_arrivee(colonne=pos[0],
+            piece_cree = Tuile_arrivee(colonne=pos[0],
                                        ligne=pos[1],
                                        taille=self.Plateau.taille_cellule)
         elif numero == COULOIR_HORIZONTAL:
@@ -90,7 +91,7 @@ class Manag_Plateau:
                     continue
 
                 # Vérifie que la tuile voisine est bien ouverte vers la tuile actuelle (pas de mur entre les deux)
-                if isinstance(voisin, Tuille_arrivee) or (
+                if isinstance(voisin, Tuile_arrivee) or (
                     voisin.pos_tuile_suivante and pos_actuelle in voisin.pos_tuile_suivante
                 ):
                     voisins_valides.append(pos_voisin)
@@ -108,9 +109,9 @@ class Manag_Plateau:
         a_arrivee = False
 
         for cellule in self.Plateau.grille.values():
-            if isinstance(cellule, Tuille_depart):
+            if isinstance(cellule, Tuile_depart):
                 pos_depart = (cellule.colonne, cellule.ligne)
-            elif isinstance(cellule, Tuille_arrivee):
+            elif isinstance(cellule, Tuile_arrivee):
                 a_arrivee = True
 
         if pos_depart is None or not a_arrivee:
@@ -133,7 +134,7 @@ class Manag_Plateau:
             tuile_courante = self.Plateau.grille.get(pos_courante)
             if tuile_courante is None:
                 continue
-            if isinstance(tuile_courante, Tuille_arrivee):
+            if isinstance(tuile_courante, Tuile_arrivee):
                 chemin_trouve = True
                 break
             if tuile_courante.pos_tuile_suivante:
@@ -151,9 +152,9 @@ class Manag_Plateau:
     def creation_couloir_horizontal(self):
         ligne_milieu = self.Plateau.nb_cellule_ligne // 2
 
-        self.Plateau.grille[(0, ligne_milieu)] = Tuille_depart(ligne=ligne_milieu,
-                                                               colonne=0,
-                                                               taille=self.Plateau.taille_cellule)
+        self.Plateau.grille[(0, ligne_milieu)] = Tuile_depart(ligne=ligne_milieu,
+                                                              colonne=0,
+                                                              taille=self.Plateau.taille_cellule)
 
         self.Plateau.grille[(0, ligne_milieu)].pos_tuile_suivante.append((1, ligne_milieu))
 
@@ -166,9 +167,9 @@ class Manag_Plateau:
             del obj_a_supr
 
         derniere_colonne = self.Plateau.get_nb_cellule_colonne()-1
-        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuille_arrivee(ligne=ligne_milieu,
-                                                                               colonne=derniere_colonne,
-                                                                               taille=self.Plateau.taille_cellule)
+        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuile_arrivee(ligne=ligne_milieu,
+                                                                              colonne=derniere_colonne,
+                                                                              taille=self.Plateau.taille_cellule)
         self.actualiser_pos_tuile_suivante()
 
         return 0, ligne_milieu
@@ -176,9 +177,9 @@ class Manag_Plateau:
     def creation_couloir_vertical(self):
         colonne_milieu = self.Plateau.nb_cellule_colonne // 2
 
-        self.Plateau.grille[(colonne_milieu, 0)] = Tuille_depart(ligne=0,
-                                                               colonne=colonne_milieu,
-                                                               taille=self.Plateau.taille_cellule)
+        self.Plateau.grille[(colonne_milieu, 0)] = Tuile_depart(ligne=0,
+                                                                colonne=colonne_milieu,
+                                                                taille=self.Plateau.taille_cellule)
 
         self.Plateau.grille[(colonne_milieu, 0)].pos_tuile_suivante.append((colonne_milieu, 1))
 
@@ -189,9 +190,9 @@ class Manag_Plateau:
                                                                             taille=self.Plateau.taille_cellule)
 
         derniere_ligne = self.Plateau.get_nb_cellule_ligne()-1
-        self.Plateau.grille[(colonne_milieu, derniere_ligne)] = Tuille_arrivee(ligne=derniere_ligne,
-                                                                               colonne=colonne_milieu,
-                                                                               taille=self.Plateau.taille_cellule)
+        self.Plateau.grille[(colonne_milieu, derniere_ligne)] = Tuile_arrivee(ligne=derniere_ligne,
+                                                                              colonne=colonne_milieu,
+                                                                              taille=self.Plateau.taille_cellule)
         self.actualiser_pos_tuile_suivante()
 
         return colonne_milieu, 0
@@ -200,9 +201,9 @@ class Manag_Plateau:
         ligne_milieu = self.Plateau.nb_cellule_ligne // 2
         taille = self.Plateau.taille_cellule
 
-        self.Plateau.grille[(0, ligne_milieu)] = Tuille_depart(ligne=ligne_milieu,
-                                                               colonne=0,
-                                                               taille=taille)
+        self.Plateau.grille[(0, ligne_milieu)] = Tuile_depart(ligne=ligne_milieu,
+                                                              colonne=0,
+                                                              taille=taille)
 
         self.Plateau.grille[(0, ligne_milieu)].pos_tuile_suivante.append((1, ligne_milieu))
 
@@ -233,9 +234,9 @@ class Manag_Plateau:
         self.Plateau.grille[(8, 4)] = Couloir_coin(ligne=4, colonne=8, taille=taille, orientation=COIN_BAS_GAUCHE)
 
         derniere_colonne = self.Plateau.get_nb_cellule_colonne() - 1
-        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuille_arrivee(ligne=ligne_milieu,
-                                                                               colonne=derniere_colonne,
-                                                                               taille=taille)
+        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuile_arrivee(ligne=ligne_milieu,
+                                                                              colonne=derniere_colonne,
+                                                                              taille=taille)
         self.actualiser_pos_tuile_suivante()
 
         return 0, ligne_milieu
@@ -244,9 +245,9 @@ class Manag_Plateau:
         ligne_milieu = self.Plateau.nb_cellule_ligne // 2
         taille = self.Plateau.taille_cellule
 
-        self.Plateau.grille[(0, ligne_milieu)] = Tuille_depart(ligne=ligne_milieu,
-                                                               colonne=0,
-                                                               taille=taille)
+        self.Plateau.grille[(0, ligne_milieu)] = Tuile_depart(ligne=ligne_milieu,
+                                                              colonne=0,
+                                                              taille=taille)
 
         self.Plateau.grille[(0, ligne_milieu)].pos_tuile_suivante.append((1, ligne_milieu))
 
@@ -351,9 +352,9 @@ class Manag_Plateau:
         self.Plateau.grille[(8, 4)] = Couloir_horizontal(ligne=4, colonne=8, taille=taille)
 
         derniere_colonne = self.Plateau.get_nb_cellule_colonne() - 1
-        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuille_arrivee(ligne=ligne_milieu,
-                                                                               colonne=derniere_colonne,
-                                                                               taille=taille)
+        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuile_arrivee(ligne=ligne_milieu,
+                                                                              colonne=derniere_colonne,
+                                                                              taille=taille)
         self.actualiser_pos_tuile_suivante()
 
         return 0, ligne_milieu
@@ -362,9 +363,9 @@ class Manag_Plateau:
         ligne_milieu = self.Plateau.nb_cellule_ligne // 2
         taille = self.Plateau.taille_cellule
 
-        self.Plateau.grille[(0, ligne_milieu)] = Tuille_depart(ligne=ligne_milieu,
-                                                               colonne=0,
-                                                               taille=taille)
+        self.Plateau.grille[(0, ligne_milieu)] = Tuile_depart(ligne=ligne_milieu,
+                                                              colonne=0,
+                                                              taille=taille)
 
         self.Plateau.grille[(0, ligne_milieu)].pos_tuile_suivante.append((1, ligne_milieu))
 
@@ -430,9 +431,9 @@ class Manag_Plateau:
         self.Plateau.grille[(8, 6)] = Couloir_coin(ligne=6, colonne=8, taille=taille, orientation=COIN_BAS_DROIT)
 
         derniere_colonne = self.Plateau.get_nb_cellule_colonne() - 1
-        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuille_arrivee(ligne=ligne_milieu,
-                                                                               colonne=derniere_colonne,
-                                                                               taille=taille)
+        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuile_arrivee(ligne=ligne_milieu,
+                                                                              colonne=derniere_colonne,
+                                                                              taille=taille)
         self.actualiser_pos_tuile_suivante()
 
         return 0, ligne_milieu
@@ -441,9 +442,9 @@ class Manag_Plateau:
         ligne_milieu = self.Plateau.nb_cellule_ligne // 2
         taille = self.Plateau.taille_cellule
 
-        self.Plateau.grille[(0, ligne_milieu)] = Tuille_depart(ligne=ligne_milieu,
-                                                               colonne=0,
-                                                               taille=taille)
+        self.Plateau.grille[(0, ligne_milieu)] = Tuile_depart(ligne=ligne_milieu,
+                                                              colonne=0,
+                                                              taille=taille)
 
         self.Plateau.grille[(0, ligne_milieu)].pos_tuile_suivante.append((1, ligne_milieu))
 
@@ -530,9 +531,85 @@ class Manag_Plateau:
         self.Plateau.grille[(9, 7)] = Cul_de_sac(ligne=7, colonne=9, taille=taille, orientation=GAUCHE)
 
         derniere_colonne = self.Plateau.get_nb_cellule_colonne() - 1
-        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuille_arrivee(ligne=ligne_milieu,
-                                                                               colonne=derniere_colonne,
-                                                                               taille=taille)
+        self.Plateau.grille[(derniere_colonne, ligne_milieu)] = Tuile_arrivee(ligne=ligne_milieu,
+                                                                              colonne=derniere_colonne,
+                                                                              taille=taille)
         self.actualiser_pos_tuile_suivante()
 
         return 0, ligne_milieu
+
+    def creation_dongeon_personnalise(self, dict_dongeon:dict):
+
+        taille = self.Plateau.taille_cellule
+        res = (0, 0)
+
+        for pos, var in dict_dongeon.items():
+            tuile = var[0]
+            orientation = var[1]
+
+            if tuile == DEPART:
+                self.Plateau.grille[pos] = Tuile_depart(ligne=pos[1],
+                                                        colonne=pos[0],
+                                                        taille=taille)
+                res = pos
+
+            elif tuile == ARRIVEE:
+                self.Plateau.grille[pos] = Tuile_arrivee(ligne=pos[1],
+                                                        colonne=pos[0],
+                                                        taille=taille)
+            elif tuile == COULOIR_HORIZONTAL:
+                self.Plateau.grille[pos] = Couloir_horizontal(ligne=pos[1],
+                                                        colonne=pos[0],
+                                                        taille=taille)
+            elif tuile == COULOIR_VERTICAL:
+                self.Plateau.grille[pos] = Couloir_vertical(ligne=pos[1],
+                                                        colonne=pos[0],
+                                                        taille=taille)
+            elif tuile == COIN:
+                self.Plateau.grille[pos] = Couloir_coin(ligne=pos[1],
+                                                        colonne=pos[0],
+                                                        taille=taille,
+                                                        orientation=orientation)
+            elif tuile == TRIANGLE:
+                self.Plateau.grille[pos] = Couloir_triangle(ligne=pos[1],
+                                                            colonne=pos[0],
+                                                            taille=taille,
+                                                            orientation=orientation)
+            elif tuile == CUL_DE_SAC:
+                self.Plateau.grille[pos] = Cul_de_sac(ligne=pos[1],
+                                                      colonne=pos[0],
+                                                      taille=taille,
+                                                      orientation=orientation)
+            else:
+                self.Plateau.grille[pos] = Cellule_vide(ligne=pos[1],
+                                                        colonne=pos[0],
+                                                        taille=taille)
+
+        return res
+
+    def sauvegarder_config(self):
+        dict_sauvegarde_pos = {}
+        for key, valeur in self.Plateau.grille.items():
+            if isinstance(key, Position):
+                pos = key.get_position()
+            else:
+                pos = key
+
+            if isinstance(valeur, Tuile_depart):
+                dict_sauvegarde_pos[pos] = (DEPART, 0)
+            elif isinstance(valeur, Tuile_arrivee):
+                dict_sauvegarde_pos[pos] = (ARRIVEE, 0)
+            elif isinstance(valeur, Couloir_horizontal):
+                dict_sauvegarde_pos[pos] = (COULOIR_HORIZONTAL, 0)
+            elif isinstance(valeur, Couloir_vertical):
+                dict_sauvegarde_pos[pos] = (COULOIR_VERTICAL, 0)
+            elif isinstance(valeur, Couloir_coin):
+                dict_sauvegarde_pos[pos] = (COIN, valeur.orientation)
+            elif isinstance(valeur, Couloir_triangle):
+                dict_sauvegarde_pos[pos] = (TRIANGLE, valeur.orientation)
+            elif isinstance(valeur, Cul_de_sac):
+                dict_sauvegarde_pos[pos] = (CUL_DE_SAC, valeur.orientation)
+            else:
+                dict_sauvegarde_pos[pos] = (CELLULE_VIDE, 0)
+
+        return dict_sauvegarde_pos

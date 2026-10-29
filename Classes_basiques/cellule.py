@@ -235,7 +235,7 @@ class Cellule_vide(Cellule):
         pass
 
 
-class Tuille_depart(Cellule):
+class Tuile_depart(Cellule):
     def __init__(self, ligne, colonne, taille):
         super().__init__(ligne, colonne, taille)
         self.definir_pos_liee_f_orientation()
@@ -250,7 +250,7 @@ class Tuille_depart(Cellule):
         ]
 
 
-class Tuille_arrivee(Cellule):
+class Tuile_arrivee(Cellule):
     def __init__(self, ligne, colonne, taille):
         super().__init__(ligne, colonne, taille)
         self.definir_pos_liee_f_orientation()

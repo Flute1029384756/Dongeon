@@ -1,3 +1,5 @@
+from sys import deactivate_stack_trampoline
+
 import pygame
 
 from Classes_basiques.Monstres import Araignee
@@ -60,7 +62,8 @@ class Manag_monstres_global:
         nb_monstre_tue = 0
         for un_monstre in self.verif_case_occupee_par_monstre(pos=pos):
             un_monstre.perte_de_vie(quantitee=degat_infligee)
-            nb_monstre_frappe += 1
+            if degat_infligee > 0:
+                nb_monstre_frappe += 1
 
             # le monstre meurt
             if un_monstre.verifier_mort() == Etat_entitee.MORT:

@@ -10,6 +10,10 @@ from Autres.Autre import (
     SPRITE_COEUR_PLEIN,
     SPRITE_COEUR_VIDE,
     SPRITE_EPEE,
+    SPRITES_AVENTURIER_IDLE,
+    DELAI_ANIMATION_SPRITE,
+    OPTIONS_MENU_DEBUT,
+    TITRE,
 )
 from Classes_basiques.cellule import Textures
 from Management.Management_Monstres_global import Manag_monstres_global
@@ -30,17 +34,35 @@ GLYPHES_PIXEL = {
     "9": ["111", "101", "111", "001", "111"],
     "/": ["001", "001", "010", "100", "100"],
     ":": ["000", "010", "000", "010", "000"],
-    "P": ["111", "101", "111", "100", "100"],
-    "V": ["101", "101", "101", "101", "010"],
-    "L": ["100", "100", "100", "100", "111"],
-    "E": ["111", "100", "110", "100", "111"],
-    "N": ["101", "111", "111", "101", "101"],
-    "I": ["111", "010", "010", "010", "111"],
-    "D": ["110", "101", "101", "101", "110"],
-    "G": ["111", "100", "101", "101", "111"],
+    "-": ["000", "000", "111", "000", "000"],
+    ">": ["100", "010", "001", "010", "100"],
+    "<": ["001", "010", "100", "010", "001"],
     "A": ["010", "101", "111", "101", "101"],
-    "T": ["111", "010", "010", "010", "010"],
+    "B": ["110", "101", "110", "101", "110"],
+    "C": ["111", "100", "100", "100", "111"],
+    "D": ["110", "101", "101", "101", "110"],
+    "E": ["111", "100", "110", "100", "111"],
+    "F": ["111", "100", "110", "100", "100"],
+    "G": ["111", "100", "101", "101", "111"],
+    "H": ["101", "101", "111", "101", "101"],
+    "I": ["111", "010", "010", "010", "111"],
+    "J": ["001", "001", "001", "101", "111"],
+    "K": ["101", "101", "110", "101", "101"],
+    "L": ["100", "100", "100", "100", "111"],
+    "M": ["101", "111", "101", "101", "101"],
+    "N": ["101", "111", "111", "101", "101"],
+    "O": ["111", "101", "101", "101", "111"],
+    "P": ["111", "101", "111", "100", "100"],
+    "Q": ["111", "101", "101", "111", "001"],
+    "R": ["110", "101", "110", "101", "101"],
     "S": ["111", "100", "111", "001", "111"],
+    "T": ["111", "010", "010", "010", "010"],
+    "U": ["101", "101", "101", "101", "111"],
+    "V": ["101", "101", "101", "101", "010"],
+    "W": ["101", "101", "101", "111", "101"],
+    "X": ["101", "101", "010", "101", "101"],
+    "Y": ["101", "101", "010", "010", "010"],
+    "Z": ["111", "001", "010", "100", "111"],
     ".": ["000", "000", "000", "000", "010"],
     " ": ["000", "000", "000", "000", "000"],
 }
@@ -49,7 +71,7 @@ GLYPHES_PIXEL = {
 class Affichage:
     def _dessiner_texte_pixel(self, ecran, texte: str, x: int, y: int, taille_pixel: int = 3, couleur=Color.BLANC):
         curseur_x = x
-        for caractere in texte:
+        for caractere in texte.upper():
             motif = GLYPHES_PIXEL.get(caractere)
             if motif:
                 for lig_idx, ligne in enumerate(motif):
@@ -478,4 +500,274 @@ class Affichage:
     def dessiner_curseur_pos(self, ecran, cellule_a_dessiner):
         cellule_a_dessiner.dessiner(ecran)
         pygame.display.flip()
+
+    def _largeur_texte_pixel(self, texte: str, taille_pixel: int = 3) -> int:
+        if not texte:
+            return 0
+        return len(texte) * 4 * taille_pixel - taille_pixel
+
+    def _preparer_fond_menu(self, largeur: int, hauteur: int) -> pygame.Surface:
+        fond = pygame.Surface((largeur, hauteur))
+        taille_tuile = 64
+
+        # 1. Sol pavé en dalles de pierre avec variations naturelles
+        motifs_sol = ["floor_1", "floor_2", "floor_3", "floor_4", "floor_8"]
+        for y in range(0, hauteur, taille_tuile):
+            for x in range(0, largeur, taille_tuile):
+                variante = motifs_sol[((x // taille_tuile) * 7 + (y // taille_tuile) * 13) % len(motifs_sol)]
+                img_sol = Textures.get_image(variante, (taille_tuile, taille_tuile))
+                fond.blit(img_sol, (x, y))
+
+        # 2. Mur de pierre médiéval en haut
+        for x in range(0, largeur, taille_tuile):
+            fond.blit(Textures.get_image("wall_top_mid", (taille_tuile, taille_tuile)), (x, 0))
+            fond.blit(Textures.get_image("wall_mid", (taille_tuile, taille_tuile)), (x, taille_tuile))
+
+        # 3. Piliers et colonnes de donjon sur les côtés
+        hauteur_colonne = 210
+        largeur_colonne = 72
+        colonne_img = Textures.get_image("column", (largeur_colonne, hauteur_colonne))
+        fond.blit(colonne_img, (24, 100))
+        fond.blit(colonne_img, (largeur - largeur_colonne - 24, 100))
+        fond.blit(colonne_img, (24, 490))
+        fond.blit(colonne_img, (largeur - largeur_colonne - 24, 490))
+
+        # 4. Bannières royales suspendues aux murs
+        banner_r = Textures.get_image("wall_banner_red", (56, 115))
+        banner_b = Textures.get_image("wall_banner_blue", (56, 115))
+        fond.blit(banner_r, (116, 120))
+        fond.blit(banner_b, (largeur - 116 - 56, 120))
+        fond.blit(banner_b, (116, 510))
+        fond.blit(banner_r, (largeur - 116 - 56, 510))
+
+        # 5. Coffres aux trésors et crânes au pied des piliers
+        coffre = Textures.get_image("chest_full_open_anim_f0", (62, 62))
+        skull = Textures.get_image("skull", (36, 36))
+        fond.blit(coffre, (102, 340))
+        fond.blit(coffre, (largeur - 102 - 62, 340))
+        fond.blit(skull, (42, 330))
+        fond.blit(skull, (largeur - 42 - 36, 330))
+
+        # 6. Voile d'ambiance et vignette sombre (pour garder les boutons lisibles et l'atmosphère sombre)
+        voile = pygame.Surface((largeur, hauteur), pygame.SRCALPHA)
+        voile.fill((10, 8, 14, 175))
+        pygame.draw.rect(voile, (6, 5, 10, 130), (0, 0, largeur, hauteur), width=180)
+        pygame.draw.rect(voile, (3, 2, 6, 190), (0, 0, largeur, hauteur), width=90)
+        fond.blit(voile, (0, 0))
+
+        return fond
+
+    def dessiner_ecran_debut(self, ecran, selection: int, options: list[str] = OPTIONS_MENU_DEBUT):
+        largeur_ecran, hauteur_ecran = ecran.get_size()
+        temps = pygame.time.get_ticks()
+
+        # Cache du fond d'écran texturé pour conserver 60 FPS
+        if not hasattr(self, "_fond_menu_surface") or self._fond_menu_surface.get_size() != (largeur_ecran, hauteur_ecran):
+            self._fond_menu_surface = self._preparer_fond_menu(largeur_ecran, hauteur_ecran)
+
+        ecran.blit(self._fond_menu_surface, (0, 0))
+
+        # Cadre central gothique / donjon
+        largeur_cadre = 940
+        hauteur_cadre = 580
+        cadre_rect = pygame.Rect(
+            (largeur_ecran - largeur_cadre) // 2,
+            (hauteur_ecran - hauteur_cadre) // 2,
+            largeur_cadre,
+            hauteur_cadre,
+        )
+
+        # Fond du cadre central avec ombrage et bordure double pierre/or
+        rect_ombre_cadre = cadre_rect.move(0, 8)
+        pygame.draw.rect(ecran, (6, 5, 8), rect_ombre_cadre, border_radius=18)
+        pygame.draw.rect(ecran, (24, 20, 30), cadre_rect, border_radius=18)
+        pygame.draw.rect(ecran, (75, 68, 92), cadre_rect, width=3, border_radius=18)
+
+        # Filet doré intérieur
+        cadre_interieur = cadre_rect.inflate(-16, -16)
+        pygame.draw.rect(ecran, (160, 130, 60), cadre_interieur, width=2, border_radius=12)
+
+        # Rivets métalliques aux 4 coins du cadre
+        for cx, cy in [
+            (cadre_rect.left + 22, cadre_rect.top + 22),
+            (cadre_rect.right - 22, cadre_rect.top + 22),
+            (cadre_rect.left + 22, cadre_rect.bottom - 22),
+            (cadre_rect.right - 22, cadre_rect.bottom - 22),
+        ]:
+            pygame.draw.circle(ecran, (15, 12, 18), (cx, cy), 8)
+            pygame.draw.circle(ecran, (215, 180, 75), (cx, cy), 6)
+            pygame.draw.circle(ecran, (255, 235, 140), (cx - 1, cy - 1), 2)
+
+        # Bannière de titre en haut
+        largeur_banniere = 660
+        hauteur_banniere = 94
+        banniere_rect = pygame.Rect(
+            (largeur_ecran - largeur_banniere) // 2,
+            cadre_rect.top + 24,
+            largeur_banniere,
+            hauteur_banniere,
+        )
+        pygame.draw.rect(ecran, (38, 32, 48), banniere_rect, border_radius=12)
+        pygame.draw.rect(ecran, (255, 215, 80), banniere_rect, width=3, border_radius=12)
+
+        # Épées dorées croisées en décoration de la bannière
+        img_epee_or = Textures.get_image("weapon_golden_sword", (24, 52), recadrer=True)
+        epee_or_g = pygame.transform.rotate(img_epee_or, -35)
+        epee_or_d = pygame.transform.rotate(img_epee_or, 35)
+        ecran.blit(epee_or_g, epee_or_g.get_rect(center=(banniere_rect.left + 40, banniere_rect.centery)))
+        ecran.blit(epee_or_d, epee_or_d.get_rect(center=(banniere_rect.right - 40, banniere_rect.centery)))
+
+        # Texte du titre en pixel art
+        texte_titre = TITRE.upper()
+        taille_px_titre = 8
+        largeur_titre = self._largeur_texte_pixel(texte_titre, taille_px_titre)
+        hauteur_titre = 5 * taille_px_titre
+        x_titre = banniere_rect.centerx - largeur_titre // 2
+        y_titre = banniere_rect.centery - hauteur_titre // 2
+
+        # Ombre puis titre doré
+        self._dessiner_texte_pixel(
+            ecran,
+            texte_titre,
+            x_titre + 4,
+            y_titre + 4,
+            taille_pixel=taille_px_titre,
+            couleur=(12, 10, 16),
+        )
+        self._dessiner_texte_pixel(
+            ecran,
+            texte_titre,
+            x_titre,
+            y_titre,
+            taille_pixel=taille_px_titre,
+            couleur=(255, 215, 80),
+        )
+
+        # Sprites animés : aventurier à gauche, monstre à droite
+        indice_anim = (temps // DELAI_ANIMATION_SPRITE) % len(SPRITES_AVENTURIER_IDLE)
+        sprite_aventurier = SPRITES_AVENTURIER_IDLE[indice_anim]
+        img_aventurier = Textures.get_image(sprite_aventurier, (56, 72), recadrer=True, retourner_gauche=False)
+        img_monstre = Textures.get_image("imp_idle_anim_f0", (52, 60), recadrer=True, retourner_gauche=True)
+        ecran.blit(img_aventurier, img_aventurier.get_rect(center=(cadre_rect.left + 88, banniere_rect.centery)))
+        ecran.blit(img_monstre, img_monstre.get_rect(center=(cadre_rect.right - 88, banniere_rect.centery)))
+
+        # Agencement des boutons :
+        # - Option 0 (Mode existant) : bouton long en haut
+        # - Option 1 (Autre mode) : bouton long au milieu
+        # - Option 2 (Quitter le jeu) : bouton en bas à gauche
+        # - Option 3 (Sauvegarder config) : bouton en bas à droite
+        largeur_long = 720
+        largeur_court = 345
+        hauteur_bouton = 74
+        x_long = (largeur_ecran - largeur_long) // 2
+
+        rects_boutons = [
+            # 0 : Mode existant
+            pygame.Rect(x_long, cadre_rect.top + 145, largeur_long, hauteur_bouton),
+            # 1 : Autre mode
+            pygame.Rect(x_long, cadre_rect.top + 245, largeur_long, hauteur_bouton),
+            # 2 : Quitter le jeu (en bas à gauche)
+            pygame.Rect(x_long, cadre_rect.top + 350, largeur_court, hauteur_bouton),
+            # 3 : Sauvegarder config (en bas à droite)
+            pygame.Rect(x_long + largeur_court + 30, cadre_rect.top + 350, largeur_court, hauteur_bouton),
+        ]
+
+        img_epee = Textures.get_image(SPRITE_EPEE, (16, 36), recadrer=True)
+        epee_gauche = pygame.transform.rotate(img_epee, -90)
+        epee_droite = pygame.transform.rotate(img_epee, 90)
+
+        # Effet de pulsation dorée pour le bouton sélectionné
+        lueur_or = int(215 + 40 * math.sin(temps * 0.006))
+        couleur_bordure_selection = (255, lueur_or, 70)
+
+        for idx, texte_option in enumerate(options):
+            if idx >= len(rects_boutons):
+                break
+            rect_bouton = rects_boutons[idx]
+            est_selectionne = idx == selection
+            est_petit_bouton = rect_bouton.width < 500
+
+            if est_selectionne:
+                # Ombre portée prononcée et surbrillance du bouton actif
+                rect_ombre = rect_bouton.move(0, 6)
+                pygame.draw.rect(ecran, (8, 6, 12), rect_ombre, border_radius=12)
+                pygame.draw.rect(ecran, (68, 56, 90), rect_bouton, border_radius=12)
+                pygame.draw.rect(ecran, couleur_bordure_selection, rect_bouton, width=4, border_radius=12)
+
+                # Reflet lumineux discret sur le haut du bouton
+                pygame.draw.rect(
+                    ecran,
+                    (115, 98, 145),
+                    (rect_bouton.x + 6, rect_bouton.y + 4, rect_bouton.width - 12, 4),
+                    border_radius=2,
+                )
+
+                couleur_texte = (255, 240, 160)
+                taille_px = 3 if est_petit_bouton else 5
+
+                # Épées pointant vers le bouton sélectionné
+                decalage_epee = 26 if est_petit_bouton else 42
+                ecran.blit(
+                    epee_gauche,
+                    epee_gauche.get_rect(center=(rect_bouton.left + decalage_epee, rect_bouton.centery)),
+                )
+                ecran.blit(
+                    epee_droite,
+                    epee_droite.get_rect(center=(rect_bouton.right - decalage_epee, rect_bouton.centery)),
+                )
+            else:
+                rect_ombre = rect_bouton.move(0, 3)
+                pygame.draw.rect(ecran, (12, 10, 16), rect_ombre, border_radius=10)
+
+                # Teinte subtilement différente pour Quitter (rougeâtre) et Sauvegarder (dorée)
+                if idx == 2:
+                    fond_bouton = (40, 26, 32)
+                elif idx == 3:
+                    fond_bouton = (32, 34, 44)
+                else:
+                    fond_bouton = (35, 30, 44)
+
+                pygame.draw.rect(ecran, fond_bouton, rect_bouton, border_radius=10)
+                pygame.draw.rect(ecran, (110, 100, 130), rect_bouton, width=2, border_radius=10)
+                couleur_texte = (190, 182, 205)
+                taille_px = 3 if est_petit_bouton else 4
+
+            largeur_txt = self._largeur_texte_pixel(texte_option, taille_px)
+            hauteur_txt = 5 * taille_px
+            x_txt = rect_bouton.centerx - largeur_txt // 2
+            y_txt = rect_bouton.centery - hauteur_txt // 2
+            self._dessiner_texte_pixel(
+                ecran,
+                texte_option,
+                x_txt,
+                y_txt,
+                taille_pixel=taille_px,
+                couleur=couleur_texte,
+            )
+
+        # Ligne de séparation et aide clavier en bas
+        y_separation = cadre_rect.bottom - 74
+        pygame.draw.line(
+            ecran,
+            (85, 76, 105),
+            (cadre_rect.left + 60, y_separation),
+            (cadre_rect.right - 60, y_separation),
+            2,
+        )
+
+        texte_aide = "FLECHES : CHOISIR   -   ENTREE : VALIDER   -   ECHAP : QUITTER"
+        taille_px_aide = 3
+        largeur_aide = self._largeur_texte_pixel(texte_aide, taille_px_aide)
+        self._dessiner_texte_pixel(
+            ecran,
+            texte_aide,
+            (largeur_ecran - largeur_aide) // 2,
+            cadre_rect.bottom - 46,
+            taille_pixel=taille_px_aide,
+            couleur=(170, 160, 190),
+        )
+
+        pygame.display.flip()
+
+
 

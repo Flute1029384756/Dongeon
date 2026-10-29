@@ -7,7 +7,7 @@ from Autres.Autre import (
     LEVEL_AVENTURIER_DEFAUT,
     TAILLE_AVENTURIER_DEFAUT,
     DEGAT_AVENTURIER_DEFAUT,
-    VITESSE_FRAPPE_AVENTURIER_DEFAUT, Position,
+    VITESSE_FRAPPE_AVENTURIER_DEFAUT, Position, Etat_entitee,
 )
 from Classes_basiques.Entitee import Entitee
 
@@ -44,6 +44,9 @@ class Aventurier(Entitee):
         if self.level < self.level_max and self.xp > self.list_xp_pour_level[self.level-1]:
             self.level += 1
             self.xp = 0
+            return Etat_entitee.LEVEL_UP
+
+        return Etat_entitee.RIEN_ANORMAL
 
     def get_ratio_xp(self):
         if self.level >= self.level_max or not self.list_xp_pour_level:
@@ -54,3 +57,11 @@ class Aventurier(Entitee):
 
     def regeneration(self):
         self.pv = self.pv_max
+
+    def augmenter_statistique(self, pv_rajoute:int=0, degat:int=0, vitesse_frappe:int=0):
+        self.pv += pv_rajoute
+        self.pv_max += pv_rajoute
+
+        self.degat_inflige += degat
+
+        self.vitesse_frappe += vitesse_frappe
