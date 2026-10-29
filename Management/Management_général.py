@@ -15,7 +15,7 @@ from Autres.Autre import (
     AUTRE_MODE,
     QUITTER_JEU,
     SAUVEGARDER_CONFIG,
-    OPTIONS_MENU_DEBUT,
+    OPTIONS_MENU_DEBUT, Var_global,
 )
 
 class Root:
@@ -108,9 +108,12 @@ class Root:
 
             if choix == MODE_EXISTANT:
                 self.reinitialiser_partie()
-                if not self.Management_secondaire[MANAG_PHASE1].creation_plateau(self.Management_secondaire):
+                res = self.Management_secondaire[MANAG_PHASE1].creation_plateau(self.Management_secondaire)
+                if res == Var_global.QUIT:
                     print("Fin sans continuité du jeu")
                     return False
+                elif res == Var_global.FIN_ESCAPE:
+                    continue
 
                 if not self.Management_secondaire[MANAG_PHASE2].jeu(self.Management_secondaire):
                     return False

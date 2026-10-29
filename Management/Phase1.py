@@ -1,3 +1,4 @@
+
 from Classes_basiques.cellule import *
 from Autres.Autre import (
     MANAG_AVENTURIER,
@@ -5,7 +6,7 @@ from Autres.Autre import (
     MANAG_MONSTRES_GLOBAL,
     NB_OPTION_MAX,
     NB_PIECE_MAX,
-    ARAIGNEE,
+    ARAIGNEE, Var_global,
 )
 
 class Manag_phase1:
@@ -44,12 +45,14 @@ class Manag_phase1:
         while en_cours:
             for evenement in pygame.event.get():
                 if evenement.type == pygame.QUIT:
-                    return False
+                    return Var_global.QUIT
                 if evenement.type == pygame.KEYUP and evenement.key == pygame.K_SPACE:
                     if Management_secondaire[MANAG_PLATEAU].verifier_plateau():
                         if len(res) == 2:
                             Management_secondaire[MANAG_AVENTURIER].placer_aventurier_pos(res, pos_origine=True)
-                        return True
+                        return Var_global.FIN_PHASE_1
+                if evenement.type == pygame.KEYUP and evenement.key == pygame.K_ESCAPE:
+                    return Var_global.FIN_ESCAPE
                 if evenement.type == pygame.KEYUP and evenement.key == pygame.K_a:
                     Management_secondaire[MANAG_PLATEAU].reinitialisation_plateau()
                     Management_secondaire[MANAG_MONSTRES_GLOBAL].end_of_monster()
@@ -57,7 +60,7 @@ class Manag_phase1:
 
                     if numero_option == 5:
                         res = Management_secondaire[MANAG_PLATEAU].creation_couloir_vertical()
-                    elif numero_option == 1:
+                    elif numero_option == 6:
                         res = Management_secondaire[MANAG_PLATEAU].creation_couloir_zigzag()
                     elif numero_option == 2:
                         res = Management_secondaire[MANAG_PLATEAU].creation_long_couloir()
@@ -71,7 +74,7 @@ class Manag_phase1:
                             Management_secondaire[MANAG_MONSTRES_GLOBAL].creation_nouveau_monstre(numero=ARAIGNEE,
                                                                                                   x=res[0] + x,
                                                                                                   y=res[1])
-                    elif numero_option == 6:
+                    elif numero_option == 1:
                         dict_nouveau_donjon = {(0, 0): (4, 0), (0, 1): (3, 0), (0, 2): (3, 0), (0, 3): (0, 0), (0, 4): (3, 0), (0, 5): (3, 0), (0, 6): (3, 0), (0, 7): (4, 3), (1, 0): (5, 0), (1, 1): (6, 0), (1, 2): (6, 1), (1, 3): (2, 0), (1, 4): (4, 0), (1, 5): (4, 3), (1, 6): (6, 2), (1, 7): (5, 2), (2, 0): (5, 0), (2, 1): (6, 0), (2, 2): (2, 0), (2, 3): (2, 0), (2, 4): (2, 0), (2, 5): (2, 0), (2, 6): (6, 2), (2, 7): (5, 2), (3, 0): (5, 0), (3, 1): (6, 0), (3, 2): (2, 0), (3, 3): (2, 0), (3, 4): (2, 0), (3, 5): (2, 0), (3, 6): (6, 2), (3, 7): (5, 2), (4, 0): (5, 0), (4, 1): (6, 0), (4, 2): (7, 0), (4, 3): (2, 0), (4, 4): (2, 0), (4, 5): (2, 0), (4, 6): (6, 2), (4, 7): (5, 2), (5, 0): (5, 0), (5, 1): (6, 0), (5, 2): (2, 0), (5, 3): (2, 0), (5, 4): (2, 0), (5, 5): (2, 0), (5, 6): (6, 2), (5, 7): (5, 2), (6, 0): (5, 0), (6, 1): (6, 0), (6, 2): (2, 0), (6, 3): (2, 0), (6, 4): (2, 0), (6, 5): (2, 0), (6, 6): (6, 2), (6, 7): (5, 2), (7, 0): (5, 0), (7, 1): (6, 0), (7, 2): (6, 3), (7, 3): (2, 0), (7, 4): (2, 0), (7, 5): (6, 3), (7, 6): (6, 2), (7, 7): (5, 2), (8, 0): (5, 0), (8, 1): (4, 3), (8, 2): (6, 1), (8, 3): (2, 0), (8, 4): (2, 0), (8, 5): (6, 1), (8, 6): (4, 0), (8, 7): (5, 2), (9, 0): (1, 0), (9, 1): (1, 0), (9, 2): (1, 0), (9, 3): (1, 0), (9, 4): (1, 0), (9, 5): (1, 0), (9, 6): (1, 0), (9, 7): (1, 0)}
                         res = Management_secondaire[MANAG_PLATEAU].creation_dongeon_personnalise(dict_dongeon=dict_nouveau_donjon)
                     else:
@@ -141,7 +144,7 @@ class Manag_phase1:
         if len(res) == 2:
             Management_secondaire[MANAG_AVENTURIER].placer_aventurier_pos(res, pos_origine=True)
 
-        return True
+        return Var_global.FIN_PHASE_1
 
     def update_pos(self, pos):
         for une_piece in self.ens_piece_existante:

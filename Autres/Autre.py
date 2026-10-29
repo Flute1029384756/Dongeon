@@ -154,6 +154,8 @@ class Var_global:
     CONTINUE = 0
     FIN_REUSSITE_AVENTURIER = 1
     FIN_ESCAPE = 2
+    FIN_PHASE_1 = 3
+    QUIT = 4
 
 class Etat_entitee:
     # Etat entitée
