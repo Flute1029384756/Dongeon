@@ -1,0 +1,148 @@
+from Classes_basiques.cellule import *
+from Autres.Autre import (
+    MANAG_AVENTURIER,
+    MANAG_PLATEAU,
+    MANAG_MONSTRES_GLOBAL,
+    NB_OPTION_MAX,
+    NB_PIECE_MAX,
+    ARAIGNEE,
+)
+
+class Manag_phase1:
+    def __init__(self, affichage, taille):
+        self.affichage = affichage
+        self.ens_piece_existante = [Tuille_depart(ligne=0, colonne=0, taille=taille),
+                               Tuille_arrivee(ligne=0, colonne=0, taille=taille),
+                               Couloir_horizontal(ligne=0, colonne=0, taille=taille),
+                               Couloir_vertical(ligne=0, colonne=0, taille=taille),
+                               [Couloir_coin(ligne=0, colonne=0, taille=taille, orientation=0),
+                                Couloir_coin(ligne=0, colonne=0, taille=taille, orientation=1),
+                                Couloir_coin(ligne=0, colonne=0, taille=taille, orientation=2),
+                                Couloir_coin(ligne=0, colonne=0, taille=taille, orientation=3)],
+                               [Couloir_triangle(ligne=0, colonne=0, taille=taille, orientation=0),
+                                Couloir_triangle(ligne=0, colonne=0, taille=taille, orientation=1),
+                                Couloir_triangle(ligne=0, colonne=0, taille=taille, orientation=2),
+                                Couloir_triangle(ligne=0, colonne=0, taille=taille, orientation=3)],
+                               [Cul_de_sac(ligne=0, colonne=0, taille=taille, orientation=0),
+                                Cul_de_sac(ligne=0, colonne=0, taille=taille, orientation=1),
+                                Cul_de_sac(ligne=0, colonne=0, taille=taille, orientation=2),
+                                Cul_de_sac(ligne=0, colonne=0, taille=taille, orientation=3)]
+                               ]
+
+    def creation_plateau(self, Management_secondaire):
+        horloge = pygame.time.Clock()
+        numero_option = 0
+        pos_piece = [0, 0]
+        orientation = 0
+
+        mode_ecriture = True
+        selection_piece = 0
+        res = ()
+
+        en_cours = True
+        while en_cours:
+            for evenement in pygame.event.get():
+                if evenement.type == pygame.QUIT:
+                    return False
+                if evenement.type == pygame.KEYUP and evenement.key == pygame.K_SPACE:
+                    if Management_secondaire[MANAG_PLATEAU].verifier_plateau():
+                        if len(res) == 2:
+                            Management_secondaire[MANAG_AVENTURIER].placer_aventurier_pos(res, pos_origine=True)
+                        return True
+                if evenement.type == pygame.KEYUP and evenement.key == pygame.K_a:
+                    Management_secondaire[MANAG_PLATEAU].reinitialisation_plateau()
+                    Management_secondaire[MANAG_MONSTRES_GLOBAL].end_of_monster()
+                    mode_ecriture = False
+
+                    if numero_option == 5:
+                        res = Management_secondaire[MANAG_PLATEAU].creation_couloir_vertical()
+                    elif numero_option == 1:
+                        res = Management_secondaire[MANAG_PLATEAU].creation_couloir_zigzag()
+                    elif numero_option == 2:
+                        res = Management_secondaire[MANAG_PLATEAU].creation_long_couloir()
+                    elif numero_option == 3:
+                        res = Management_secondaire[MANAG_PLATEAU].creation_couloir_triangle()
+                    elif numero_option == 4:
+                        res = Management_secondaire[MANAG_PLATEAU].creation_couloir_cul_de_sac()
+                    elif numero_option == 0:
+                        res = Management_secondaire[MANAG_PLATEAU].creation_couloir_horizontal()
+                        for x in [2, 4, 6, 7]:
+                            Management_secondaire[MANAG_MONSTRES_GLOBAL].creation_nouveau_monstre(numero=ARAIGNEE,
+                                                                                                  x=res[0] + x,
+                                                                                                  y=res[1])
+                    else:
+                        mode_ecriture = True
+                        selection_piece = 0
+                        res = ()
+
+                    numero_option = (numero_option+1)%NB_OPTION_MAX
+
+                    if len(res) == 2:
+                        Management_secondaire[MANAG_AVENTURIER].placer_aventurier_pos(res, pos_origine=True)
+
+                if mode_ecriture and evenement.type == pygame.KEYUP and evenement.key == pygame.K_p:
+                    selection_piece = (selection_piece + 1)%NB_PIECE_MAX
+
+                if mode_ecriture and evenement.type == pygame.KEYUP and evenement.key == pygame.K_UP:
+                    pos_piece[1] -= 1
+                    if pos_piece[1] < 0:
+                        pos_piece[1] = 0
+                    self.update_pos(pos_piece)
+                if mode_ecriture and evenement.type == pygame.KEYUP and evenement.key == pygame.K_DOWN:
+                    pos_piece[1] += 1
+                    if pos_piece[1] >= Management_secondaire[MANAG_PLATEAU].Plateau.nb_cellule_ligne:
+                        pos_piece[1] = Management_secondaire[MANAG_PLATEAU].Plateau.nb_cellule_ligne - 1
+
+                    self.update_pos(pos_piece)
+                if mode_ecriture and evenement.type == pygame.KEYUP and evenement.key == pygame.K_LEFT:
+                    pos_piece[0] -= 1
+                    if pos_piece[0] < 0:
+                        pos_piece[0] = 0
+                    self.update_pos(pos_piece)
+                if mode_ecriture and evenement.type == pygame.KEYUP and evenement.key == pygame.K_RIGHT:
+                    pos_piece[0] += 1
+                    if pos_piece[0] >= Management_secondaire[MANAG_PLATEAU].Plateau.nb_cellule_colonne:
+                        pos_piece[0] = Management_secondaire[MANAG_PLATEAU].Plateau.nb_cellule_colonne - 1
+                    self.update_pos(pos_piece)
+
+                if mode_ecriture and evenement.type == pygame.KEYUP and evenement.key == pygame.K_m:
+                    orientation = (orientation+1)%4
+
+                if mode_ecriture and evenement.type == pygame.KEYUP and evenement.key == pygame.K_RETURN:
+                    Management_secondaire[MANAG_PLATEAU].placement_piece(numero=selection_piece,
+                                                                         orientation=orientation,
+                                                                         pos=pos_piece)
+                    if selection_piece == 0:
+                        res = tuple(pos_piece)
+                        if len(res) == 2:
+                            Management_secondaire[MANAG_AVENTURIER].placer_aventurier_pos(res, pos_origine=True)
+                    if len(res) == 2:
+                        Management_secondaire[MANAG_PLATEAU].completer_tuile_depart()
+
+            self.affichage.dessiner(manag_Plateau=Management_secondaire[MANAG_PLATEAU],
+                                    manag_aventurier=Management_secondaire[MANAG_AVENTURIER],
+                                    manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL]
+                                    )
+            if mode_ecriture:
+
+                cellule_a_dessiner = self.ens_piece_existante[selection_piece]
+
+                if isinstance(cellule_a_dessiner, list):
+                    cellule_a_dessiner = cellule_a_dessiner[orientation]
+                self.affichage.dessiner_curseur_pos(ecran=Management_secondaire[MANAG_PLATEAU].get_plateau().ecran,
+                                                    cellule_a_dessiner=cellule_a_dessiner)
+
+            horloge.tick(60)
+
+        if len(res) == 2:
+            Management_secondaire[MANAG_AVENTURIER].placer_aventurier_pos(res, pos_origine=True)
+
+        return True
+
+    def update_pos(self, pos):
+        for une_piece in self.ens_piece_existante:
+            if isinstance(une_piece, list):
+                for une_vrai_piece in une_piece:
+                    une_vrai_piece.changer_pos(pos=pos)
+            else:
+                une_piece.changer_pos(pos=pos)
