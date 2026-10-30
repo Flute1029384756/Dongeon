@@ -1,8 +1,18 @@
 import pygame
-from Autres.Autre import Color, Position, SPRITE_ENTITEE_DEFAUT, DELAI_ANIMATION_SPRITE, Etat_entitee
+from Autres.Autre import (
+    Color,
+    Position,
+    SPRITE_ENTITEE_DEFAUT,
+    DELAI_ANIMATION_SPRITE,
+    Etat_entitee,
+    DELAI_RECUP_ENDURANCE,
+)
 
 class Entitee:
-    def __init__(self, pv:int, level:int, taille:int, x:int, y:int, couleur:Color, degat_inflige:int, vitesse_frappe:int, sprite=SPRITE_ENTITEE_DEFAUT):
+    def __init__(self, pv:int, level:int, taille:int, x:int, y:int, couleur:Color,
+                 degat_inflige:int, vitesse_frappe:int, endurance:int, consommation_arme:int,
+                 delai_recup_endurance:int=DELAI_RECUP_ENDURANCE,
+                 sprite=SPRITE_ENTITEE_DEFAUT):
         self.pv = pv
         self.pv_max = pv
         self.level = level
@@ -16,8 +26,17 @@ class Entitee:
         self.temps_debut_deplacement = 0
         self.en_deplacement_continu = False
         self.degat_inflige = degat_inflige
+
         self.vitesse_frappe = vitesse_frappe
+        self.meilleur_vitesse_frappe = vitesse_frappe
+        self.vitesse_frappe_epuisement = vitesse_frappe * 1.5
+
         self.time_dernier_coup = 0
+        self.endurance_max = endurance
+        self.endurance = endurance
+        self.consommation_arme = consommation_arme
+        self.delai_recup_endurance = delai_recup_endurance
+        self.temps_derniere_recup_endurance = 0
 
     def get_pv(self):
         return self.pv
@@ -60,10 +79,19 @@ class Entitee:
         return True
 
     def get_degat_inflige(self):
-        return self.degat_inflige
+        if self.endurance <= 0:
+            return self.degat_inflige // 2
+        else:
+            return self.degat_inflige
 
     def get_vitesse_frappe(self):
         return self.vitesse_frappe
+
+    def get_endurance(self):
+        return self.endurance
+
+    def get_endurance_max(self):
+        return self.endurance_max
 
     def get_ratio_cooldown(self):
         if self.vitesse_frappe <= 0 or self.time_dernier_coup <= 0:
@@ -76,3 +104,39 @@ class Entitee:
             return Etat_entitee.MORT
         else:
             return Etat_entitee.VIVANT
+
+    def diminution_endurance(self, endurance_diminuee=None, pourcentage=None):
+        if endurance_diminuee is not None:
+            self.endurance -= endurance_diminuee
+        elif pourcentage is not None:
+            self.endurance = self.endurance * pourcentage/100
+        else:
+            self.endurance -= self.consommation_arme
+
+        if self.endurance <= 0:
+            self.vitesse_frappe = self.vitesse_frappe_epuisement
+            if self.endurance < 0:
+                self.endurance = 0
+
+    def recuperer_endurance(self, quantite: int = 1):
+        if self.endurance < self.endurance_max:
+            self.endurance = min(self.endurance_max, self.endurance + quantite)
+            if self.endurance > 0:
+                self.vitesse_frappe = self.meilleur_vitesse_frappe
+
+    def actualiser_recuperation_endurance(self, maintenant=None):
+        if maintenant is None:
+            maintenant = pygame.time.get_ticks()
+
+        if self.endurance >= self.endurance_max:
+            self.temps_derniere_recup_endurance = maintenant
+            return
+
+        if self.temps_derniere_recup_endurance == 0:
+            self.temps_derniere_recup_endurance = maintenant
+            return
+
+        if maintenant - self.temps_derniere_recup_endurance >= self.delai_recup_endurance:
+            nb_points = (maintenant - self.temps_derniere_recup_endurance) // self.delai_recup_endurance
+            self.recuperer_endurance(nb_points)
+            self.temps_derniere_recup_endurance += nb_points * self.delai_recup_endurance

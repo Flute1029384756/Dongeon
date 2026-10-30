@@ -98,6 +98,9 @@ COIN_BAS_GAUCHE, TRIANGLE_GAUCHE, GAUCHE = 3, 3, 3
 # Types de monstres
 ARAIGNEE = 0
 
+# Endurance et récupération
+DELAI_RECUP_ENDURANCE = 2000  # Temps en ms pour récupérer 1 point d'endurance
+
 # Statistiques de base des entités
 PV_AVENTURIER_DEFAUT = 10
 LEVEL_AVENTURIER_DEFAUT = 1

@@ -8,37 +8,42 @@ from Autres.Autre import Var_global, Etat_entitee, Action_aventurier, STAT_PV, S
 
 class Manag_aventurier:
     def __init__(self):
+
         level_max = 4
         list_augmentation_level = [10*x for x in range(1, level_max)]
-        print(list_augmentation_level)
-        self.dict_action_xp_gagne = {
-            Action_aventurier.DEPLACEMENT: 1,
-            Action_aventurier.FRAPER: 1,
-            Action_aventurier.TUER_MONSTRE: 2,
-        }
-        self.dict_augmentation_niveau = {
-            1: {
-                STAT_PV: 4,
-                STAT_DEGAT: 1,
-                STAT_VITESSE_FRAPPE: 0
-            },
-            2: {
-                STAT_PV: 4,
-                STAT_DEGAT: 0,
-                STAT_VITESSE_FRAPPE: -200
-            },
-            3: {
-                STAT_PV: 6,
-                STAT_DEGAT: 1,
-                STAT_VITESSE_FRAPPE: -50
-            }
-        }
 
         self.level_max = level_max
         self.list_augmentation_level = list_augmentation_level
         self.aventurier = Aventurier(colonne=0, ligne=0,
                                      list_xp_pour_level=self.list_augmentation_level,
                                      level_max=self.level_max)
+
+        self.dict_action_xp_gagne = {
+            Action_aventurier.DEPLACEMENT: 1,
+            Action_aventurier.FRAPER: 1,
+            Action_aventurier.TUER_MONSTRE: 2,
+        }
+        self.cout_endurance_action = {
+            Action_aventurier.DEPLACEMENT: 1,
+            Action_aventurier.FRAPER: self.aventurier.consommation_arme
+        }
+        self.dict_augmentation_niveau = {
+            2: {
+                STAT_PV: 4,
+                STAT_DEGAT: 1,
+                STAT_VITESSE_FRAPPE: 0
+            },
+            3: {
+                STAT_PV: 4,
+                STAT_DEGAT: 0,
+                STAT_VITESSE_FRAPPE: -200
+            },
+            4: {
+                STAT_PV: 6,
+                STAT_DEGAT: 1,
+                STAT_VITESSE_FRAPPE: -50
+            }
+        }
 
     def reinitialiser_aventurier(self):
         self.aventurier = Aventurier(colonne=0, ligne=0,
@@ -47,6 +52,9 @@ class Manag_aventurier:
 
     def get_aventurier(self):
         return self.aventurier
+
+    def actualiser_endurance(self):
+        self.aventurier.actualiser_recuperation_endurance()
 
     def retour_spawn(self):
         self.aventurier.regeneration()
@@ -134,6 +142,7 @@ class Manag_aventurier:
             self.aventurier.get_pos_precedente().changer_pos(pos=pos_actuelle)
             self.placer_aventurier_pos(prochaine_pos, teleportation=teleportation)
 
+        self.aventurier.diminution_endurance(endurance_diminuee=self.cout_endurance_action[Action_aventurier.DEPLACEMENT])
         if self.aventurier.gagner_experience(self.dict_action_xp_gagne[Action_aventurier.DEPLACEMENT]) == Etat_entitee.LEVEL_UP:
             level_aventurier = self.aventurier.get_level()
             self.aventurier.augmenter_statistique(pv_rajoute=self.dict_augmentation_niveau[level_aventurier][STAT_PV],
@@ -155,11 +164,16 @@ class Manag_aventurier:
     def get_degat_inflige(self):
         if pygame.time.get_ticks() - self.aventurier.time_dernier_coup >= self.aventurier.vitesse_frappe:
             self.aventurier.time_dernier_coup = pygame.time.get_ticks()
+
+            # la perte d'endurance ne compte que pour une frappe peu importe le nb d'ennemi touché
+            self.aventurier.diminution_endurance(
+                endurance_diminuee=self.cout_endurance_action[Action_aventurier.FRAPER])
             return self.aventurier.get_degat_inflige()
         else:
             return 0
 
     def gagner_experience(self, nb_monstre_frappe, nb_monstre_tue):
+
         if ((self.aventurier.gagner_experience(self.dict_action_xp_gagne[Action_aventurier.FRAPER] * nb_monstre_frappe) == Etat_entitee.LEVEL_UP) or
                 (self.aventurier.gagner_experience(self.dict_action_xp_gagne[Action_aventurier.TUER_MONSTRE] * nb_monstre_tue) == Etat_entitee.LEVEL_UP)):
             level_aventurier = self.aventurier.get_level()

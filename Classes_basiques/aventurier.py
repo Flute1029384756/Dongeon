@@ -1,3 +1,4 @@
+import pygame
 from Autres.Autre import (
     Color,
     SPRITES_AVENTURIER_IDLE,
@@ -23,6 +24,8 @@ class Aventurier(Entitee):
             Color.BLANC,
             degat_inflige=DEGAT_AVENTURIER_DEFAUT,
             vitesse_frappe=VITESSE_FRAPPE_AVENTURIER_DEFAUT,
+            endurance=5,
+            consommation_arme=1
         )
         self.sprite = SPRITES_AVENTURIER_IDLE
         self.xp = 0
@@ -57,6 +60,9 @@ class Aventurier(Entitee):
 
     def regeneration(self):
         self.pv = self.pv_max
+        self.vitesse_frappe = self.meilleur_vitesse_frappe
+        self.endurance = self.endurance_max
+        self.temps_derniere_recup_endurance = pygame.time.get_ticks()
 
     def augmenter_statistique(self, pv_rajoute:int=0, degat:int=0, vitesse_frappe:int=0):
         self.pv += pv_rajoute
@@ -64,4 +70,10 @@ class Aventurier(Entitee):
 
         self.degat_inflige += degat
 
+        self.vitesse_frappe = self.meilleur_vitesse_frappe
         self.vitesse_frappe += vitesse_frappe
+        self.meilleur_vitesse_frappe += vitesse_frappe
+        self.vitesse_frappe_epuisement = self.vitesse_frappe * 1.5
+
+        self.endurance = self.endurance_max
+        self.temps_derniere_recup_endurance = pygame.time.get_ticks()

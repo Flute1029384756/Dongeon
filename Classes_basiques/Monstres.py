@@ -10,8 +10,10 @@ from Autres.Autre import (
 from Classes_basiques.Entitee import Entitee
 
 class Monstres(Entitee):
-    def __init__(self, pv:int, level:int, taille:int, x:int, y:int, color:Color, degat_inflige:int, vitesse_frappe:int):
-        super().__init__(pv, level, taille, x, y, couleur=color, degat_inflige=degat_inflige, vitesse_frappe=vitesse_frappe)
+    def __init__(self, pv:int, level:int, taille:int, x:int, y:int, color:Color,
+                 degat_inflige:int, vitesse_frappe:int, endurance:int, consommation_arme:int):
+        super().__init__(pv, level, taille, x, y, couleur=color,
+                         degat_inflige=degat_inflige, vitesse_frappe=vitesse_frappe, endurance=endurance, consommation_arme=consommation_arme)
         self.sprite = SPRITE_MONSTRE_DEFAUT
 
 class Araignee(Monstres):
@@ -25,6 +27,8 @@ class Araignee(Monstres):
             color=Color.BLUE,
             degat_inflige=DEGAT_ARAIGNEE_DEFAUT,
             vitesse_frappe=VITESSE_FRAPPE_ARAIGNEE_DEFAUT,
+            endurance=10,
+            consommation_arme=1
         )
         self.sprite = SPRITES_ARAIGNEE
         self.retourner_gauche = True

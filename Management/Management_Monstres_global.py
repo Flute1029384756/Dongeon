@@ -74,6 +74,7 @@ class Manag_monstres_global:
             elif pygame.time.get_ticks() - un_monstre.time_dernier_coup >= un_monstre.vitesse_frappe:
                     un_monstre.time_dernier_coup = pygame.time.get_ticks()
                     degat_inflige_par_monstre += un_monstre.get_degat_inflige()
+                    un_monstre.diminution_endurance()
 
             # le monstre ne fait rien
             else:

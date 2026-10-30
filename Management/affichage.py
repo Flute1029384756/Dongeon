@@ -166,6 +166,62 @@ class Affichage:
 
         pygame.draw.rect(ecran, (165, 220, 140), rect_fond, width=1, border_radius=3)
 
+    def _dessiner_icone_endurance(self, ecran, cx: int, cy: int):
+        # Symbole d'énergie / flamme d'endurance
+        points_endurance = [
+            (cx, cy - 10),
+            (cx + 6, cy - 3),
+            (cx + 7, cy + 3),
+            (cx + 4, cy + 9),
+            (cx, cy + 11),
+            (cx - 4, cy + 9),
+            (cx - 7, cy + 3),
+            (cx - 6, cy - 3),
+        ]
+        pygame.draw.polygon(ecran, (245, 185, 45), points_endurance)
+        pygame.draw.polygon(ecran, Color.BLANC, points_endurance, width=1)
+        pygame.draw.circle(ecran, (255, 235, 140), (cx, cy + 2), 2)
+
+    def _dessiner_barre_endurance(self, ecran, x: int, y: int, largeur: int, hauteur: int, endurance: int, endurance_max: int):
+        endurance_max = max(1, endurance_max)
+        ratio = max(0.0, min(1.0, max(0, endurance) / endurance_max))
+        rect_fond = pygame.Rect(x, y, largeur, hauteur)
+
+        pygame.draw.rect(ecran, (35, 25, 20), rect_fond, border_radius=4)
+
+        if ratio > 0.0:
+            if ratio > 0.35:
+                couleur_barre = (245, 185, 45)
+                couleur_reflet = (255, 230, 120)
+            elif ratio > 0.15:
+                couleur_barre = (235, 130, 35)
+                couleur_reflet = (255, 180, 80)
+            else:
+                couleur_barre = (215, 55, 55)
+                couleur_reflet = (250, 110, 110)
+
+            largeur_remplie = max(3, int((largeur - 4) * ratio))
+            rect_end = pygame.Rect(x + 2, y + 2, largeur_remplie, hauteur - 4)
+            pygame.draw.rect(ecran, couleur_barre, rect_end, border_radius=3)
+
+            reflet = pygame.Rect(x + 3, y + 3, max(0, largeur_remplie - 2), max(2, (hauteur - 4) // 3))
+            pygame.draw.rect(ecran, couleur_reflet, reflet, border_radius=1)
+
+        # Graduations par point d'endurance
+        if 1 < endurance_max <= 20:
+            for i in range(1, endurance_max):
+                x_sep = x + int(i * largeur / endurance_max)
+                pygame.draw.line(
+                    ecran,
+                    (25, 18, 15),
+                    (x_sep, y + 2),
+                    (x_sep, y + hauteur - 3),
+                    1,
+                )
+
+        couleur_bord = Color.BLANC if endurance > 0 else (210, 80, 80)
+        pygame.draw.rect(ecran, couleur_bord, rect_fond, width=1, border_radius=4)
+
     def dessiner_profil_entitee(
         self,
         ecran,
@@ -178,7 +234,7 @@ class Affichage:
     ):
         marge = 16
         largeur_panneau = max(200, largeur_zone - 2 * marge)
-        hauteur_panneau = 202
+        hauteur_panneau = 248
         panneau_rect = pygame.Rect(x_zone + marge, y_depart, largeur_panneau, hauteur_panneau)
 
         # Fond et bordure du panneau de profil
@@ -214,6 +270,8 @@ class Affichage:
         vitesse_ms = entitee.get_vitesse_frappe()
         ratio_cooldown = entitee.get_ratio_cooldown()
         ratio_pv = max(0.0, min(1.0, pv_actuels / pv_max))
+        endurance = entitee.get_endurance() if hasattr(entitee, "get_endurance") else getattr(entitee, "endurance", 0)
+        endurance_max = entitee.get_endurance_max() if hasattr(entitee, "get_endurance_max") else getattr(entitee, "endurance_max", 1)
 
         # Affichage du Level (et barre d'XP style Minecraft à côté si l'entité possède de l'XP)
         a_barre_xp = hasattr(entitee, "get_ratio_xp")
@@ -374,6 +432,43 @@ class Affichage:
             ratio=ratio_cooldown,
         )
 
+        # Case de l'endurance avec jauge d'énergie
+        hauteur_case_endurance = 38
+        case_endurance_rect = pygame.Rect(
+            panneau_rect.x + 12,
+            case_vitesse_rect.bottom + 8,
+            largeur_panneau - 24,
+            hauteur_case_endurance,
+        )
+        pygame.draw.rect(ecran, (44, 38, 50), case_endurance_rect, border_radius=6)
+        bord_case_end = (175, 165, 190) if endurance > 0 else (210, 80, 80)
+        pygame.draw.rect(ecran, bord_case_end, case_endurance_rect, width=2, border_radius=6)
+
+        self._dessiner_icone_endurance(ecran, case_endurance_rect.x + 22, case_endurance_rect.centery)
+
+        texte_end = f"END : {max(0, endurance)}/{endurance_max}"
+        couleur_texte_end = Color.BLANC if endurance > 0 else (240, 90, 90)
+        self._dessiner_texte_pixel(
+            ecran,
+            texte_end,
+            case_endurance_rect.x + 40,
+            case_endurance_rect.centery - 5,
+            taille_pixel=2,
+            couleur=couleur_texte_end,
+        )
+
+        x_barre_end = case_endurance_rect.x + 130
+        largeur_barre_end = max(40, case_endurance_rect.right - x_barre_end - 12)
+        self._dessiner_barre_endurance(
+            ecran,
+            x_barre_end,
+            case_endurance_rect.centery - 8,
+            largeur_barre_end,
+            16,
+            endurance,
+            endurance_max,
+        )
+
     def dessiner_profil_aventurier(self, ecran, aventurier, largeur_zone: int):
         self.dessiner_profil_entitee(
             ecran=ecran,
@@ -392,7 +487,7 @@ class Affichage:
                 entitee=monstre,
                 x_zone=x_zone,
                 largeur_zone=largeur_zone,
-                y_depart=16 + idx * 216,
+                y_depart=16 + idx * 262,
                 taille_sprite=(58, 50),
                 retourner_gauche=monstre.get_retourner_gauche(),
             )

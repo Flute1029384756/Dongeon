@@ -30,6 +30,8 @@ class Manag_phase2:
                 if evenement.type == pygame.KEYUP and evenement.key == pygame.K_ESCAPE:
                     return Var_global.FIN_ESCAPE
 
+            Management_secondaire[MANAG_AVENTURIER].actualiser_endurance()
+
             self.affichage.dessiner(manag_Plateau=Management_secondaire[MANAG_PLATEAU],
                                     manag_aventurier=Management_secondaire[MANAG_AVENTURIER],
                                     manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL])
