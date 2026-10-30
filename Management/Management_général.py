@@ -4,6 +4,7 @@ from Management.Management_Plateau import Manag_Plateau
 from Management.Management_aventurier import Manag_aventurier
 from Management.Phase1 import Manag_phase1
 from Management.Phase2 import Manag_phase2
+from Management.Phase_placement_monstre import Manag_phase_1_placement_monstre
 from Management.Management_Monstres_global import Manag_monstres_global
 from Autres.Autre import (
     MANAG_AVENTURIER,
@@ -11,6 +12,7 @@ from Autres.Autre import (
     MANAG_PHASE1,
     MANAG_PHASE2,
     MANAG_MONSTRES_GLOBAL,
+    MANAG_PHASE1_MONSTRE,
     MODE_EXISTANT,
     AUTRE_MODE,
     QUITTER_JEU,
@@ -29,6 +31,13 @@ class Root:
 
         self.Management_secondaire[MANAG_PHASE1] = Manag_phase1(self.affichage,
                                                                 self.Management_secondaire[MANAG_PLATEAU].get_plateau().taille_cellule)
+
+        self.Management_secondaire[MANAG_PHASE1_MONSTRE] = Manag_phase_1_placement_monstre(
+            affichage=self.affichage,
+            manag_plateau=self.Management_secondaire[MANAG_PLATEAU],
+            manag_aventurier=self.Management_secondaire[MANAG_AVENTURIER],
+            manag_monstre=self.Management_secondaire[MANAG_MONSTRES_GLOBAL]
+        )
 
         self.Management_secondaire[MANAG_PHASE2] = Manag_phase2(affichage=self.affichage,
                                                                 manag_aventurier=self.Management_secondaire[MANAG_AVENTURIER],
@@ -119,7 +128,16 @@ class Root:
                     return False
 
             elif choix == AUTRE_MODE:
-                print("Autre mode sélectionné (à implémenter)")
+                self.reinitialiser_partie()
+                res = self.Management_secondaire[MANAG_PHASE1_MONSTRE].mode_creation()
+                if res == Var_global.QUIT:
+                    print("Fin sans continuité du jeu")
+                    return False
+                elif res == Var_global.FIN_ESCAPE:
+                    continue
+                elif res == Var_global.CONTINUE:
+                    if not self.Management_secondaire[MANAG_PHASE2].jeu(self.Management_secondaire):
+                        return False
 
             elif choix == SAUVEGARDER_CONFIG:
                 self.sauvegarder_config()

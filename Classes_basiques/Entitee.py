@@ -9,7 +9,7 @@ from Autres.Autre import (
 )
 
 class Entitee:
-    def __init__(self, pv:int, level:int, taille:int, x:int, y:int, couleur:Color,
+    def __init__(self, pv:int, level:int, x:int, y:int,
                  degat_inflige:int, vitesse_frappe:int, endurance:int, consommation_arme:int,
                  delai_recup_endurance:int=DELAI_RECUP_ENDURANCE,
                  sprite=SPRITE_ENTITEE_DEFAUT):
@@ -17,8 +17,6 @@ class Entitee:
         self.pv_max = pv
         self.level = level
         self.xp = level
-        self.taille = taille
-        self.couleur = couleur
         self.position = Position(x, y)
         self.pos_precedente = Position(x, y)
         self.sprite = sprite
@@ -46,9 +44,6 @@ class Entitee:
 
     def get_level(self):
         return self.level
-
-    def get_taille(self):
-        return self.taille
 
     def get_position(self):
         return self.position
@@ -140,3 +135,9 @@ class Entitee:
             nb_points = (maintenant - self.temps_derniere_recup_endurance) // self.delai_recup_endurance
             self.recuperer_endurance(nb_points)
             self.temps_derniere_recup_endurance += nb_points * self.delai_recup_endurance
+
+    def regeneration(self):
+        self.pv = self.pv_max
+        self.vitesse_frappe = self.meilleur_vitesse_frappe
+        self.endurance = self.endurance_max
+        self.temps_derniere_recup_endurance = pygame.time.get_ticks()

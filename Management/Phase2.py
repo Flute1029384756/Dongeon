@@ -46,6 +46,7 @@ class Manag_phase2:
                                                 manag_aventurier=Management_secondaire[MANAG_AVENTURIER],
                                                 manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL])
                         Management_secondaire[MANAG_AVENTURIER].retour_spawn()
+                        Management_secondaire[MANAG_MONSTRES_GLOBAL].retour_spawn()
                 else:
                     res = Management_secondaire[MANAG_AVENTURIER].deplacer_aventurier(
                         Management_secondaire[MANAG_PLATEAU])

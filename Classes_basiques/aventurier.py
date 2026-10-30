@@ -6,7 +6,6 @@ from Autres.Autre import (
     SPRITES_AVENTURIER_HIT,
     PV_AVENTURIER_DEFAUT,
     LEVEL_AVENTURIER_DEFAUT,
-    TAILLE_AVENTURIER_DEFAUT,
     DEGAT_AVENTURIER_DEFAUT,
     VITESSE_FRAPPE_AVENTURIER_DEFAUT, Position, Etat_entitee,
 )
@@ -18,10 +17,8 @@ class Aventurier(Entitee):
         super().__init__(
             PV_AVENTURIER_DEFAUT,
             LEVEL_AVENTURIER_DEFAUT,
-            TAILLE_AVENTURIER_DEFAUT,
             colonne,
             ligne,
-            Color.BLANC,
             degat_inflige=DEGAT_AVENTURIER_DEFAUT,
             vitesse_frappe=VITESSE_FRAPPE_AVENTURIER_DEFAUT,
             endurance=5,
@@ -57,12 +54,6 @@ class Aventurier(Entitee):
         indice = max(0, min(self.level - 1, len(self.list_xp_pour_level) - 1))
         seuil_suivant = max(1, self.list_xp_pour_level[indice])
         return max(0.0, min(1.0, self.xp / seuil_suivant))
-
-    def regeneration(self):
-        self.pv = self.pv_max
-        self.vitesse_frappe = self.meilleur_vitesse_frappe
-        self.endurance = self.endurance_max
-        self.temps_derniere_recup_endurance = pygame.time.get_ticks()
 
     def augmenter_statistique(self, pv_rajoute:int=0, degat:int=0, vitesse_frappe:int=0):
         self.pv += pv_rajoute

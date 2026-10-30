@@ -1,25 +1,31 @@
-from sys import deactivate_stack_trampoline
-
 import pygame
 
-from Classes_basiques.Monstres import Araignee
-from Autres.Autre import ARAIGNEE, Etat_entitee
+from Classes_basiques.Monstres import Araignee, Gobelin
+from Autres.Autre import ARAIGNEE, Etat_entitee, GOBELIN
 
 
 class Manag_monstres_global:
     def __init__(self):
         self.ens_monstres_crees = {
             ARAIGNEE: [],
+            GOBELIN: []
         }
 
-    def creation_nouveau_monstre(self, numero:int, x:int, y:int):
+    def creer_objet_monstre(self, numero: int, x: int = 0, y: int = 0):
         if numero == ARAIGNEE:
-            self.ens_monstres_crees[ARAIGNEE].append(Araignee(x=x, y=y, level=1))
-        else:
-            print("monstre non reconnu")
+            return Araignee(x=x, y=y, level=1)
+        elif numero == GOBELIN:
+            return Gobelin(x=x, y=y, level=1)
+        print("monstre non reconnu")
+        return None
+
+    def creation_nouveau_monstre(self, numero:int, x:int, y:int):
+        monstre = self.creer_objet_monstre(numero=numero, x=x, y=y)
+        if monstre is None:
             return False
 
-        return len(self.ens_monstres_crees[ARAIGNEE])-1
+        self.ens_monstres_crees[numero].append(monstre)
+        return len(self.ens_monstres_crees[numero]) - 1
 
     def placer_monstre(self, type_monstre, nouvelle_pos, indice=None, ancienne_pos=None):
         if indice is not None:
@@ -81,3 +87,8 @@ class Manag_monstres_global:
                 degat_inflige_par_monstre += 0
 
         return degat_inflige_par_monstre, nb_monstre_frappe, nb_monstre_tue
+
+    def retour_spawn(self):
+        for un_type, list_type in self.ens_monstres_crees.items():
+            for un_monstre in list_type:
+                un_monstre.regeneration()

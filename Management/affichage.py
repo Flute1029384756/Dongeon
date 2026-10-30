@@ -13,6 +13,8 @@ from Autres.Autre import (
     SPRITES_AVENTURIER_IDLE,
     DELAI_ANIMATION_SPRITE,
     OPTIONS_MENU_DEBUT,
+    OPTIONS_CHOIX_NIVEAU,
+    RETOUR_MENU,
     TITRE,
 )
 from Classes_basiques.cellule import Textures
@@ -492,8 +494,36 @@ class Affichage:
                 retourner_gauche=monstre.get_retourner_gauche(),
             )
 
+    def dessiner_aide_placement_monstre(self, ecran, x_zone: int, largeur_zone: int, y_depart: int = 278):
+        pygame.draw.line(
+            ecran,
+            (85, 76, 105),
+            (x_zone + 28, y_depart),
+            (x_zone + largeur_zone - 28, y_depart),
+            2,
+        )
+
+        lignes_aide = [
+            "FLECHE BAS :",
+            "CHANGER DE MONSTRE",
+        ]
+        taille_px_aide = 3
+        y_texte = y_depart + 14
+        for ligne in lignes_aide:
+            largeur_ligne = self._largeur_texte_pixel(ligne, taille_px_aide)
+            x_texte = x_zone + (largeur_zone - largeur_ligne) // 2
+            self._dessiner_texte_pixel(
+                ecran,
+                ligne,
+                x_texte,
+                y_texte,
+                taille_pixel=taille_px_aide,
+                couleur=(170, 160, 190),
+            )
+            y_texte += 5 * taille_px_aide + 9
+
     def dessiner(self, manag_Plateau: Manag_Plateau, manag_aventurier: Manag_aventurier,
-                 manag_monstre:Manag_monstres_global):
+                 manag_monstre: Manag_monstres_global, monstres_a_afficher: list = None):
         # fond cellule
         aventurier = manag_aventurier.get_aventurier()
         plateau = manag_Plateau.get_plateau()
@@ -580,14 +610,22 @@ class Affichage:
         # profil de l'aventurier en haut à gauche
         self.dessiner_profil_aventurier(ecran, aventurier, x_gauche)
 
-        # profil du monstre combattu en haut à droite (uniquement si un combat est en cours)
-        if monstres_combattus:
+        # profil du monstre combattu (ou sélectionné lors du placement) en haut à droite
+        largeur_zone_droite = plateau.largeur_fenetre - x_droite
+        monstres_droite = monstres_a_afficher if monstres_a_afficher is not None else monstres_combattus
+        if monstres_droite:
             self.dessiner_profil_monstres_combat(
                 ecran,
-                monstres_combattus,
+                monstres_droite,
                 x_droite,
-                plateau.largeur_fenetre - x_droite,
+                largeur_zone_droite,
             )
+            if monstres_a_afficher is not None:
+                self.dessiner_aide_placement_monstre(
+                    ecran,
+                    x_droite,
+                    largeur_zone_droite,
+                )
 
         # update
         pygame.display.flip()
@@ -863,6 +901,195 @@ class Affichage:
         )
 
         pygame.display.flip()
+
+    def dessiner_ecran_choix_niveau(self, ecran, selection: int, options: list[str] = OPTIONS_CHOIX_NIVEAU):
+        largeur_ecran, hauteur_ecran = ecran.get_size()
+        temps = pygame.time.get_ticks()
+
+        if not hasattr(self, "_fond_menu_surface") or self._fond_menu_surface.get_size() != (largeur_ecran, hauteur_ecran):
+            self._fond_menu_surface = self._preparer_fond_menu(largeur_ecran, hauteur_ecran)
+
+        ecran.blit(self._fond_menu_surface, (0, 0))
+
+        # Cadre central gothique / donjon
+        largeur_cadre = 940
+        hauteur_cadre = 580
+        cadre_rect = pygame.Rect(
+            (largeur_ecran - largeur_cadre) // 2,
+            (hauteur_ecran - hauteur_cadre) // 2,
+            largeur_cadre,
+            hauteur_cadre,
+        )
+
+        rect_ombre_cadre = cadre_rect.move(0, 8)
+        pygame.draw.rect(ecran, (6, 5, 8), rect_ombre_cadre, border_radius=18)
+        pygame.draw.rect(ecran, (24, 20, 30), cadre_rect, border_radius=18)
+        pygame.draw.rect(ecran, (75, 68, 92), cadre_rect, width=3, border_radius=18)
+
+        cadre_interieur = cadre_rect.inflate(-16, -16)
+        pygame.draw.rect(ecran, (160, 130, 60), cadre_interieur, width=2, border_radius=12)
+
+        for cx, cy in [
+            (cadre_rect.left + 22, cadre_rect.top + 22),
+            (cadre_rect.right - 22, cadre_rect.top + 22),
+            (cadre_rect.left + 22, cadre_rect.bottom - 22),
+            (cadre_rect.right - 22, cadre_rect.bottom - 22),
+        ]:
+            pygame.draw.circle(ecran, (15, 12, 18), (cx, cy), 8)
+            pygame.draw.circle(ecran, (215, 180, 75), (cx, cy), 6)
+            pygame.draw.circle(ecran, (255, 235, 140), (cx - 1, cy - 1), 2)
+
+        # Bannière de titre en haut
+        largeur_banniere = 660
+        hauteur_banniere = 94
+        banniere_rect = pygame.Rect(
+            (largeur_ecran - largeur_banniere) // 2,
+            cadre_rect.top + 24,
+            largeur_banniere,
+            hauteur_banniere,
+        )
+        pygame.draw.rect(ecran, (38, 32, 48), banniere_rect, border_radius=12)
+        pygame.draw.rect(ecran, (255, 215, 80), banniere_rect, width=3, border_radius=12)
+
+        img_epee_or = Textures.get_image("weapon_golden_sword", (24, 52), recadrer=True)
+        epee_or_g = pygame.transform.rotate(img_epee_or, -35)
+        epee_or_d = pygame.transform.rotate(img_epee_or, 35)
+        ecran.blit(epee_or_g, epee_or_g.get_rect(center=(banniere_rect.left + 40, banniere_rect.centery)))
+        ecran.blit(epee_or_d, epee_or_d.get_rect(center=(banniere_rect.right - 40, banniere_rect.centery)))
+
+        texte_titre = "CHOIX DU NIVEAU"
+        taille_px_titre = 6
+        largeur_titre = self._largeur_texte_pixel(texte_titre, taille_px_titre)
+        hauteur_titre = 5 * taille_px_titre
+        x_titre = banniere_rect.centerx - largeur_titre // 2
+        y_titre = banniere_rect.centery - hauteur_titre // 2
+
+        self._dessiner_texte_pixel(
+            ecran,
+            texte_titre,
+            x_titre + 4,
+            y_titre + 4,
+            taille_pixel=taille_px_titre,
+            couleur=(12, 10, 16),
+        )
+        self._dessiner_texte_pixel(
+            ecran,
+            texte_titre,
+            x_titre,
+            y_titre,
+            taille_pixel=taille_px_titre,
+            couleur=(255, 215, 80),
+        )
+
+        # Sprites animés : aventurier à gauche, monstre à droite
+        indice_anim = (temps // DELAI_ANIMATION_SPRITE) % len(SPRITES_AVENTURIER_IDLE)
+        sprite_aventurier = SPRITES_AVENTURIER_IDLE[indice_anim]
+        img_aventurier = Textures.get_image(sprite_aventurier, (56, 72), recadrer=True, retourner_gauche=False)
+        img_monstre = Textures.get_image("imp_idle_anim_f0", (52, 60), recadrer=True, retourner_gauche=True)
+        ecran.blit(img_aventurier, img_aventurier.get_rect(center=(cadre_rect.left + 88, banniere_rect.centery)))
+        ecran.blit(img_monstre, img_monstre.get_rect(center=(cadre_rect.right - 88, banniere_rect.centery)))
+
+        # Grille 3x2 de boutons : Niveaux 1 à 5 + Retour
+        largeur_total = 720
+        largeur_bouton = 345
+        hauteur_bouton = 74
+        espacement_x = 30
+        x_col_gauche = (largeur_ecran - largeur_total) // 2
+        x_col_droite = x_col_gauche + largeur_bouton + espacement_x
+
+        rects_boutons = [
+            pygame.Rect(x_col_gauche, cadre_rect.top + 145, largeur_bouton, hauteur_bouton),
+            pygame.Rect(x_col_droite, cadre_rect.top + 145, largeur_bouton, hauteur_bouton),
+            pygame.Rect(x_col_gauche, cadre_rect.top + 245, largeur_bouton, hauteur_bouton),
+            pygame.Rect(x_col_droite, cadre_rect.top + 245, largeur_bouton, hauteur_bouton),
+            pygame.Rect(x_col_gauche, cadre_rect.top + 345, largeur_bouton, hauteur_bouton),
+            pygame.Rect(x_col_droite, cadre_rect.top + 345, largeur_bouton, hauteur_bouton),
+        ]
+
+        img_epee = Textures.get_image(SPRITE_EPEE, (16, 36), recadrer=True)
+        epee_gauche = pygame.transform.rotate(img_epee, -90)
+        epee_droite = pygame.transform.rotate(img_epee, 90)
+
+        lueur_or = int(215 + 40 * math.sin(temps * 0.006))
+        couleur_bordure_selection = (255, lueur_or, 70)
+
+        for idx, texte_option in enumerate(options):
+            if idx >= len(rects_boutons):
+                break
+            rect_bouton = rects_boutons[idx]
+            est_selectionne = idx == selection
+
+            if est_selectionne:
+                rect_ombre = rect_bouton.move(0, 6)
+                pygame.draw.rect(ecran, (8, 6, 12), rect_ombre, border_radius=12)
+                pygame.draw.rect(ecran, (68, 56, 90), rect_bouton, border_radius=12)
+                pygame.draw.rect(ecran, couleur_bordure_selection, rect_bouton, width=4, border_radius=12)
+
+                pygame.draw.rect(
+                    ecran,
+                    (115, 98, 145),
+                    (rect_bouton.x + 6, rect_bouton.y + 4, rect_bouton.width - 12, 4),
+                    border_radius=2,
+                )
+
+                couleur_texte = (255, 240, 160)
+                taille_px = 4
+
+                decalage_epee = 28
+                ecran.blit(
+                    epee_gauche,
+                    epee_gauche.get_rect(center=(rect_bouton.left + decalage_epee, rect_bouton.centery)),
+                )
+                ecran.blit(
+                    epee_droite,
+                    epee_droite.get_rect(center=(rect_bouton.right - decalage_epee, rect_bouton.centery)),
+                )
+            else:
+                rect_ombre = rect_bouton.move(0, 3)
+                pygame.draw.rect(ecran, (12, 10, 16), rect_ombre, border_radius=10)
+
+                fond_bouton = (40, 26, 32) if idx == RETOUR_MENU else (35, 30, 44)
+                pygame.draw.rect(ecran, fond_bouton, rect_bouton, border_radius=10)
+                pygame.draw.rect(ecran, (110, 100, 130), rect_bouton, width=2, border_radius=10)
+                couleur_texte = (190, 182, 205)
+                taille_px = 4
+
+            largeur_txt = self._largeur_texte_pixel(texte_option, taille_px)
+            hauteur_txt = 5 * taille_px
+            x_txt = rect_bouton.centerx - largeur_txt // 2
+            y_txt = rect_bouton.centery - hauteur_txt // 2
+            self._dessiner_texte_pixel(
+                ecran,
+                texte_option,
+                x_txt,
+                y_txt,
+                taille_pixel=taille_px,
+                couleur=couleur_texte,
+            )
+
+        y_separation = cadre_rect.bottom - 74
+        pygame.draw.line(
+            ecran,
+            (85, 76, 105),
+            (cadre_rect.left + 60, y_separation),
+            (cadre_rect.right - 60, y_separation),
+            2,
+        )
+
+        texte_aide = "FLECHES : CHOISIR   -   ENTREE : VALIDER   -   ECHAP : RETOUR"
+        taille_px_aide = 3
+        largeur_aide = self._largeur_texte_pixel(texte_aide, taille_px_aide)
+        self._dessiner_texte_pixel(
+            ecran,
+            texte_aide,
+            (largeur_ecran - largeur_aide) // 2,
+            cadre_rect.bottom - 46,
+            taille_pixel=taille_px_aide,
+            couleur=(170, 160, 190),
+        )
+
+        pygame.display.flip()
+
 
 
 

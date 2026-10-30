@@ -10,7 +10,7 @@ class Manag_aventurier:
     def __init__(self):
 
         level_max = 4
-        list_augmentation_level = [10*x for x in range(1, level_max)]
+        list_augmentation_level = [20, 40, 60]
 
         self.level_max = level_max
         self.list_augmentation_level = list_augmentation_level
@@ -19,7 +19,7 @@ class Manag_aventurier:
                                      level_max=self.level_max)
 
         self.dict_action_xp_gagne = {
-            Action_aventurier.DEPLACEMENT: 1,
+            Action_aventurier.DEPLACEMENT: 0.2,
             Action_aventurier.FRAPER: 1,
             Action_aventurier.TUER_MONSTRE: 2,
         }

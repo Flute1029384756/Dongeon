@@ -56,6 +56,12 @@ SPRITES_ARAIGNEE = [
     "SpiderPack/IdleOrange2/SpiderIdleSide3",
     "SpiderPack/IdleOrange2/SpiderIdleSide4",
 ]
+SPRITES_GOBLIN = [
+    "goblin_idle_anim_f0",
+    "goblin_idle_anim_f1",
+    "goblin_idle_anim_f2",
+    "goblin_idle_anim_f3",
+]
 
 # Identifiants des managers
 MANAG_AVENTURIER = 0
@@ -64,6 +70,7 @@ MANAG_PHASE1 = 2
 MANAG_PHASE2 = 3
 MANAG_MONSTRES_GLOBAL = 4
 MANAG_COMBAT = 5
+MANAG_PHASE1_MONSTRE = 6
 
 # Options du menu de début
 MODE_EXISTANT = 0
@@ -71,10 +78,22 @@ AUTRE_MODE = 1
 QUITTER_JEU = 2
 SAUVEGARDER_CONFIG = 3
 OPTIONS_MENU_DEBUT = [
-    "MODE EXISTANT",
-    "AUTRE MODE",
+    "MODE CREATION",
+    "MODE JEU CLASSIQUE",
     "QUITTER LE JEU",
     "SAUVEGARDER CONFIG",
+]
+
+# Options du menu de choix de niveau
+NB_NIVEAUX = 5
+RETOUR_MENU = 5
+OPTIONS_CHOIX_NIVEAU = [
+    "NIVEAU 1",
+    "NIVEAU 2",
+    "NIVEAU 3",
+    "NIVEAU 4",
+    "NIVEAU 5",
+    "RETOUR",
 ]
 
 # Options et types de pièces
@@ -97,6 +116,7 @@ COIN_BAS_GAUCHE, TRIANGLE_GAUCHE, GAUCHE = 3, 3, 3
 
 # Types de monstres
 ARAIGNEE = 0
+GOBELIN = 1
 
 # Endurance et récupération
 DELAI_RECUP_ENDURANCE = 2000  # Temps en ms pour récupérer 1 point d'endurance
@@ -104,7 +124,6 @@ DELAI_RECUP_ENDURANCE = 2000  # Temps en ms pour récupérer 1 point d'endurance
 # Statistiques de base des entités
 PV_AVENTURIER_DEFAUT = 10
 LEVEL_AVENTURIER_DEFAUT = 1
-TAILLE_AVENTURIER_DEFAUT = 20
 DEGAT_AVENTURIER_DEFAUT = 2
 VITESSE_FRAPPE_AVENTURIER_DEFAUT = 1000
 
@@ -113,9 +132,11 @@ STAT_DEGAT = 1
 STAT_VITESSE_FRAPPE = 2
 
 PV_ARAIGNEE_DEFAUT = 12
-TAILLE_ARAIGNEE_DEFAUT = 5
-DEGAT_ARAIGNEE_DEFAUT = 3
+PV_GOBELIN_DEFAUT = 5
+DEGAT_ARAIGNEE_DEFAUT = 2
+DEGAT_GOBELIN_DEFAUT = 2
 VITESSE_FRAPPE_ARAIGNEE_DEFAUT = 1500
+VITESSE_FRAPPE_GOBELIN_DEFAUT = 2000
 
 class Position:
     def __init__(self, x:int, y:int):
@@ -138,12 +159,31 @@ class Position:
     def __eq__(self, other):
         if isinstance(other, Position):
             return (self.x, self.y) == (other.x, other.y)
-        if isinstance(other, tuple) and len(other) == 2:
-            return (self.x, self.y) == other
+        if isinstance(other, (tuple, list)) and len(other) == 2:
+            return (self.x, self.y) == (other[0], other[1])
         return False
 
     def __hash__(self):
         return hash((self.x, self.y))
+
+    def __getitem__(self, index):
+        if index == 0:
+            return self.x
+        if index == 1:
+            return self.y
+        raise IndexError("Position index out of range")
+
+    def __setitem__(self, index, value):
+        if index == 0:
+            self.x = value
+        elif index == 1:
+            self.y = value
+        else:
+            raise IndexError("Position index out of range")
+
+    def __iter__(self):
+        yield self.x
+        yield self.y
 
 
 class Color:
