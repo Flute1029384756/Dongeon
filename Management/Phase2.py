@@ -26,7 +26,7 @@ class Manag_phase2:
         while en_cours:
             for evenement in pygame.event.get():
                 if evenement.type == pygame.QUIT:
-                    return False
+                    return Var_global.QUIT
                 if evenement.type == pygame.KEYUP and evenement.key == pygame.K_ESCAPE:
                     return Var_global.FIN_ESCAPE
 
@@ -45,8 +45,7 @@ class Manag_phase2:
                         self.affichage.dessiner(manag_Plateau=Management_secondaire[MANAG_PLATEAU],
                                                 manag_aventurier=Management_secondaire[MANAG_AVENTURIER],
                                                 manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL])
-                        Management_secondaire[MANAG_AVENTURIER].retour_spawn()
-                        Management_secondaire[MANAG_MONSTRES_GLOBAL].retour_spawn()
+                        return Var_global.FIN_DEFAITE_AVENTURIER
                 else:
                     res = Management_secondaire[MANAG_AVENTURIER].deplacer_aventurier(
                         Management_secondaire[MANAG_PLATEAU])
@@ -56,4 +55,4 @@ class Manag_phase2:
 
             horloge.tick(60)
 
-        return True
+        return Var_global.FIN_REUSSITE_AVENTURIER

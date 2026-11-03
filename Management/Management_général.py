@@ -43,10 +43,14 @@ class Root:
                                                                 manag_aventurier=self.Management_secondaire[MANAG_AVENTURIER],
                                                                 manag_monstre_global=self.Management_secondaire[MANAG_MONSTRES_GLOBAL])
 
-    def reinitialiser_partie(self):
+    def hard_reset(self):
         self.Management_secondaire[MANAG_PLATEAU].reinitialisation_plateau()
         self.Management_secondaire[MANAG_MONSTRES_GLOBAL].end_of_monster()
         self.Management_secondaire[MANAG_AVENTURIER].reinitialiser_aventurier()
+
+    def reinitialiser_avec_conservation(self):
+        self.Management_secondaire[MANAG_MONSTRES_GLOBAL].retour_spawn()
+        self.Management_secondaire[MANAG_AVENTURIER].retour_spawn()
 
     def sauvegarder_config(self):
         config = self.Management_secondaire[MANAG_PLATEAU].sauvegarder_config()
@@ -116,7 +120,7 @@ class Root:
                 return False
 
             if choix == MODE_EXISTANT:
-                self.reinitialiser_partie()
+                self.hard_reset()
                 res = self.Management_secondaire[MANAG_PHASE1].creation_plateau(self.Management_secondaire)
                 if res == Var_global.QUIT:
                     print("Fin sans continuité du jeu")
@@ -124,20 +128,36 @@ class Root:
                 elif res == Var_global.FIN_ESCAPE:
                     continue
 
-                if not self.Management_secondaire[MANAG_PHASE2].jeu(self.Management_secondaire):
+                res = self.Management_secondaire[MANAG_PHASE2].jeu(self.Management_secondaire)
+                if res == Var_global.QUIT:
                     return False
+                elif res in (Var_global.FIN_REUSSITE_AVENTURIER, Var_global.FIN_DEFAITE_AVENTURIER, Var_global.FIN_ESCAPE):
+                    continue
 
             elif choix == AUTRE_MODE:
-                self.reinitialiser_partie()
-                res = self.Management_secondaire[MANAG_PHASE1_MONSTRE].mode_creation()
-                if res == Var_global.QUIT:
-                    print("Fin sans continuité du jeu")
-                    return False
-                elif res == Var_global.FIN_ESCAPE:
+                self.hard_reset()
+                level = self.Management_secondaire[MANAG_PHASE1_MONSTRE].ecran_choix_niveau()
+                if level == Var_global.FIN_ESCAPE:
                     continue
-                elif res == Var_global.CONTINUE:
-                    if not self.Management_secondaire[MANAG_PHASE2].jeu(self.Management_secondaire):
+                elif level == Var_global.QUIT:
+                    return False
+
+                while True:
+                    self.reinitialiser_avec_conservation()
+                    res = self.Management_secondaire[MANAG_PHASE1_MONSTRE].mode_creation(level=level)
+                    if res == Var_global.QUIT:
+                        print("Fin sans continuité du jeu")
                         return False
+                    elif res == Var_global.FIN_ESCAPE:
+                        break
+                    elif res == Var_global.CONTINUE:
+                        res_jeu = self.Management_secondaire[MANAG_PHASE2].jeu(self.Management_secondaire)
+                        if res_jeu == Var_global.QUIT :
+                            return False
+                        elif res_jeu in (Var_global.FIN_ESCAPE, Var_global.FIN_REUSSITE_AVENTURIER):
+                            break
+                        elif res_jeu == Var_global.FIN_DEFAITE_AVENTURIER:
+                            continue
 
             elif choix == SAUVEGARDER_CONFIG:
                 self.sauvegarder_config()

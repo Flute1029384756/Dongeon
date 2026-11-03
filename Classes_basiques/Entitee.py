@@ -15,14 +15,20 @@ class Entitee:
                  sprite=SPRITE_ENTITEE_DEFAUT):
         self.pv = pv
         self.pv_max = pv
+
         self.level = level
+
         self.xp = level
+
         self.position = Position(x, y)
         self.pos_precedente = Position(x, y)
+
         self.sprite = sprite
         self.retourner_gauche = False
+
         self.temps_debut_deplacement = 0
         self.en_deplacement_continu = False
+
         self.degat_inflige = degat_inflige
 
         self.vitesse_frappe = vitesse_frappe
@@ -35,6 +41,18 @@ class Entitee:
         self.consommation_arme = consommation_arme
         self.delai_recup_endurance = delai_recup_endurance
         self.temps_derniere_recup_endurance = 0
+
+    def changer_pv_admin(self, nouveau_pv):
+        self.pv_max = nouveau_pv
+        self.pv = nouveau_pv
+
+    def changer_vitesse_frappe_admin(self, nouvelle_vitesse_frappe):
+        self.vitesse_frappe = nouvelle_vitesse_frappe
+        self.meilleur_vitesse_frappe = nouvelle_vitesse_frappe
+        self.vitesse_frappe_epuisement = nouvelle_vitesse_frappe * 1.5
+
+    def change_degat_inflige_admin(self, nouveau_degat):
+        self.degat_inflige = nouveau_degat
 
     def get_pv(self):
         return self.pv

@@ -8,6 +8,10 @@ from Autres.Autre import (
     DEGAT_ARAIGNEE_DEFAUT,
     VITESSE_FRAPPE_ARAIGNEE_DEFAUT,
     VITESSE_FRAPPE_GOBELIN_DEFAUT,
+    SPRITES_ARAIGNEE_VENIMEUSE,
+    DEGAT_ARAIGNEE_VENIMEUSE_DEFAUT,
+    VITESSE_FRAPPE_ARAIGNEE_VENIMEUSE_DEFAUT,
+    PV_ARAIGNEE_VENIMEUSE_DEFAUT,
 )
 from Classes_basiques.Entitee import Entitee
 
@@ -30,8 +34,19 @@ class Araignee(Monstres):
             endurance=10,
             consommation_arme=1
         )
+        self.nom = "ARAIGNEE"
         self.sprite = SPRITES_ARAIGNEE
         self.retourner_gauche = True
+
+class Araignee_venimeuse(Araignee):
+    def __init__(self, x:int, y:int, level:int):
+        super().__init__(x=x, y=y, level=level)
+        self.nom = "ARAIGNEE VENIMEUSE"
+        self.sprite = SPRITES_ARAIGNEE_VENIMEUSE
+
+        self.change_degat_inflige_admin(DEGAT_ARAIGNEE_VENIMEUSE_DEFAUT)
+        self.changer_vitesse_frappe_admin(VITESSE_FRAPPE_ARAIGNEE_VENIMEUSE_DEFAUT)
+        self.changer_pv_admin(PV_ARAIGNEE_VENIMEUSE_DEFAUT)
 
 class Gobelin(Monstres):
     def __init__(self, x:int, y:int, level:int):
@@ -45,5 +60,6 @@ class Gobelin(Monstres):
             endurance=3,
             consommation_arme=1
             )
+        self.nom = "GOBELIN"
         self.sprite = SPRITES_GOBLIN
         self.retourner_gauche = True

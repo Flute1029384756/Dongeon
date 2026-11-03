@@ -1,14 +1,15 @@
 import pygame
 
-from Classes_basiques.Monstres import Araignee, Gobelin
-from Autres.Autre import ARAIGNEE, Etat_entitee, GOBELIN
+from Classes_basiques.Monstres import Araignee, Gobelin, Araignee_venimeuse
+from Autres.Autre import ARAIGNEE, Etat_entitee, GOBELIN, ARAIGNEE_VENIMEUSE
 
 
 class Manag_monstres_global:
     def __init__(self):
         self.ens_monstres_crees = {
             ARAIGNEE: [],
-            GOBELIN: []
+            GOBELIN: [],
+            ARAIGNEE_VENIMEUSE: [],
         }
 
     def creer_objet_monstre(self, numero: int, x: int = 0, y: int = 0):
@@ -16,6 +17,8 @@ class Manag_monstres_global:
             return Araignee(x=x, y=y, level=1)
         elif numero == GOBELIN:
             return Gobelin(x=x, y=y, level=1)
+        elif numero == ARAIGNEE_VENIMEUSE:
+            return Araignee_venimeuse(x=x, y=y, level=1)
         print("monstre non reconnu")
         return None
 

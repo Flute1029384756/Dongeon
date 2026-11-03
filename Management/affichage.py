@@ -10,6 +10,7 @@ from Autres.Autre import (
     SPRITE_COEUR_PLEIN,
     SPRITE_COEUR_VIDE,
     SPRITE_EPEE,
+    SPRITE_CARTE_DECK,
     SPRITES_AVENTURIER_IDLE,
     DELAI_ANIMATION_SPRITE,
     OPTIONS_MENU_DEBUT,
@@ -71,6 +72,9 @@ GLYPHES_PIXEL = {
 
 
 class Affichage:
+    def __init__(self):
+        self._qfond_menu_surface = None
+
     def _dessiner_texte_pixel(self, ecran, texte: str, x: int, y: int, taille_pixel: int = 3, couleur=Color.BLANC):
         curseur_x = x
         for caractere in texte.upper():
@@ -522,8 +526,150 @@ class Affichage:
             )
             y_texte += 5 * taille_px_aide + 9
 
+    def dessiner_deck_cartes(self, ecran, x_zone: int, largeur_zone: int, hauteur_fenetre: int):
+        largeur_carte = 176
+        hauteur_carte = 264
+        nb_cartes_empilees = 6
+        decalage_pile_x = -2
+        decalage_pile_y = 3
+
+        # Centre le deck dans la moitié basse de la colonne de droite
+        y_moitie_basse = hauteur_fenetre // 2
+        hauteur_dispo = hauteur_fenetre - y_moitie_basse
+        x_carte = x_zone + (largeur_zone - largeur_carte) // 2 - (nb_cartes_empilees * decalage_pile_x) // 2
+        y_carte = y_moitie_basse + (hauteur_dispo - hauteur_carte - nb_cartes_empilees * decalage_pile_y) // 2
+
+        # Ombre portée sous l'ensemble du paquet de cartes
+        rect_ombre = pygame.Rect(
+            x_carte + nb_cartes_empilees * decalage_pile_x - 4,
+            y_carte + nb_cartes_empilees * decalage_pile_y + 6,
+            largeur_carte + 8,
+            hauteur_carte + 4,
+        )
+        pygame.draw.rect(ecran, (8, 6, 12), rect_ombre, border_radius=12)
+
+        # Tranches des cartes empilées sous la carte du dessus (effet de paquet 3D)
+        for i in range(nb_cartes_empilees, 0, -1):
+            rect_dessous = pygame.Rect(
+                x_carte + i * decalage_pile_x,
+                y_carte + i * decalage_pile_y,
+                largeur_carte,
+                hauteur_carte,
+            )
+            couleur_tranche = (32, 28, 42) if i % 2 == 0 else (48, 42, 60)
+            couleur_bord = (150, 130, 85) if i % 2 == 0 else (110, 95, 65)
+            pygame.draw.rect(ecran, couleur_tranche, rect_dessous, border_radius=10)
+            pygame.draw.rect(ecran, couleur_bord, rect_dessous, width=2, border_radius=10)
+
+        # Carte supérieure du deck avec bordure dorée et illustration carte_deck
+        rect_dessus = pygame.Rect(x_carte, y_carte, largeur_carte, hauteur_carte)
+        pygame.draw.rect(ecran, (22, 18, 30), rect_dessus, border_radius=10)
+
+        marge_cadre = 6
+        img_deck = Textures.get_image(
+            SPRITE_CARTE_DECK,
+            (largeur_carte - 2 * marge_cadre, hauteur_carte - 2 * marge_cadre),
+        )
+        ecran.blit(img_deck, (rect_dessus.x + marge_cadre, rect_dessus.y + marge_cadre))
+
+        # Cadre intérieur et bordure dorée de la carte du dessus
+        pygame.draw.rect(
+            ecran,
+            (95, 185, 165),
+            rect_dessus.inflate(-2 * marge_cadre, -2 * marge_cadre),
+            width=1,
+            border_radius=6,
+        )
+        pygame.draw.rect(ecran, (220, 185, 85), rect_dessus, width=3, border_radius=10)
+
+    def dessiner_cartes_selection_monstre(self, ecran, plateau, cartes_monstres: list, selection: int):
+        if not cartes_monstres:
+            return
+
+        temps = pygame.time.get_ticks()
+        lueur_or = int(215 + 40 * math.sin(temps * 0.006))
+        couleur_bord_selection = (255, lueur_or, 70)
+
+        # Voile semi-transparent sur la zone centrale du plateau pour faire ressortir les 3 cartes
+        voile = pygame.Surface((plateau.largeur, plateau.hauteur_fenetre), pygame.SRCALPHA)
+        voile.fill((8, 6, 14, 175))
+        ecran.blit(voile, (plateau.decalage_x, 0))
+
+        # Sélectionne jusqu'à 3 cartes à afficher côte à côte au centre
+        nb_cartes = min(3, len(cartes_monstres))
+        largeur_carte = 288
+        hauteur_carte = 360
+        espacement = 28
+        largeur_totale = nb_cartes * largeur_carte + (nb_cartes - 1) * espacement
+        x_depart_cartes = plateau.decalage_x + (plateau.largeur - largeur_totale) // 2
+        y_base_carte = (plateau.hauteur_fenetre - hauteur_carte) // 2
+
+        for idx in range(nb_cartes):
+            monstre = cartes_monstres[idx]
+            est_selectionnee = idx == selection
+            decalage_y = -14 if est_selectionnee else 0
+
+            x_carte = x_depart_cartes + idx * (largeur_carte + espacement)
+            y_carte = y_base_carte + decalage_y
+            rect_carte = pygame.Rect(x_carte, y_carte, largeur_carte, hauteur_carte)
+
+            # Ombre portée de la carte
+            rect_ombre = rect_carte.move(0, 10 if est_selectionnee else 5)
+            pygame.draw.rect(ecran, (5, 4, 8), rect_ombre, border_radius=14)
+
+            # Fond et bordure de la carte face visible
+            fond_carte = (50, 42, 68) if est_selectionnee else (30, 25, 40)
+            bord_ext = couleur_bord_selection if est_selectionnee else (120, 108, 145)
+            epaisseur_bord = 4 if est_selectionnee else 2
+            pygame.draw.rect(ecran, fond_carte, rect_carte, border_radius=14)
+            pygame.draw.rect(ecran, bord_ext, rect_carte, width=epaisseur_bord, border_radius=14)
+
+            # Filet doré intérieur de la carte
+            rect_interieur = rect_carte.inflate(-14, -14)
+            couleur_filet = (210, 175, 75) if est_selectionnee else (95, 82, 115)
+            pygame.draw.rect(ecran, couleur_filet, rect_interieur, width=1, border_radius=10)
+
+            # En-tête de la carte avec le nom du monstre
+            nom_monstre = getattr(monstre, "nom", type(monstre).__name__.replace("_", " ").upper())
+            rect_entete = pygame.Rect(x_carte + 14, y_carte + 16, largeur_carte - 28, 40)
+            pygame.draw.rect(ecran, (22, 18, 30), rect_entete, border_radius=8)
+            pygame.draw.rect(ecran, couleur_filet, rect_entete, width=2, border_radius=8)
+
+            taille_px_nom = 3 if self._largeur_texte_pixel(nom_monstre, 3) <= rect_entete.width - 16 else 2
+            largeur_nom = self._largeur_texte_pixel(nom_monstre, taille_px_nom)
+            hauteur_nom = 5 * taille_px_nom
+            self._dessiner_texte_pixel(
+                ecran,
+                nom_monstre,
+                rect_entete.centerx - largeur_nom // 2,
+                rect_entete.centery - hauteur_nom // 2,
+                taille_pixel=taille_px_nom,
+                couleur=(255, 235, 130) if est_selectionnee else (200, 190, 215),
+            )
+
+            # Profil complet du monstre intégré au cœur de la carte
+            self.dessiner_profil_entitee(
+                ecran=ecran,
+                entitee=monstre,
+                x_zone=x_carte - 2,
+                largeur_zone=largeur_carte + 4,
+                y_depart=y_carte + 66,
+                taille_sprite=(58, 50),
+                retourner_gauche=monstre.get_retourner_gauche(),
+            )
+
+            # Rivets aux 4 coins de la carte
+            for cx, cy in [
+                (rect_carte.left + 12, rect_carte.top + 12),
+                (rect_carte.right - 12, rect_carte.top + 12),
+                (rect_carte.left + 12, rect_carte.bottom - 12),
+                (rect_carte.right - 12, rect_carte.bottom - 12),
+            ]:
+                pygame.draw.circle(ecran, couleur_filet, (cx, cy), 4)
+
     def dessiner(self, manag_Plateau: Manag_Plateau, manag_aventurier: Manag_aventurier,
-                 manag_monstre: Manag_monstres_global, monstres_a_afficher: list = None):
+                 manag_monstre: Manag_monstres_global, monstres_a_afficher: list = None,
+                 cartes_selection: list = None, indice_carte_selectionnee: int = 0):
         # fond cellule
         aventurier = manag_aventurier.get_aventurier()
         plateau = manag_Plateau.get_plateau()
@@ -601,6 +747,15 @@ class Affichage:
                 )
                 ecran.blit(img_monstre, img_monstre.get_rect(center=(x_monstre, y_monstre)))
 
+        # cartes de sélection des monstres au milieu de l'écran
+        if cartes_selection:
+            self.dessiner_cartes_selection_monstre(
+                ecran,
+                plateau,
+                cartes_selection,
+                indice_carte_selectionnee,
+            )
+
         # délimitation entre la grille (espace utilisable) et les zones d'affichage
         x_gauche = plateau.decalage_x
         x_droite = plateau.decalage_x + plateau.largeur
@@ -626,6 +781,14 @@ class Affichage:
                     x_droite,
                     largeur_zone_droite,
                 )
+
+        # deck de cartes toujours affiché en bas à droite
+        self.dessiner_deck_cartes(
+            ecran,
+            x_droite,
+            largeur_zone_droite,
+            plateau.hauteur_fenetre,
+        )
 
         # update
         pygame.display.flip()
@@ -907,7 +1070,7 @@ class Affichage:
         temps = pygame.time.get_ticks()
 
         if not hasattr(self, "_fond_menu_surface") or self._fond_menu_surface.get_size() != (largeur_ecran, hauteur_ecran):
-            self._fond_menu_surface = self._preparer_fond_menu(largeur_ecran, hauteur_ecran)
+            self._qfond_menu_surface = self._preparer_fond_menu(largeur_ecran, hauteur_ecran)
 
         ecran.blit(self._fond_menu_surface, (0, 0))
 

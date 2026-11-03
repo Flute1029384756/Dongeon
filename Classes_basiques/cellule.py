@@ -41,20 +41,22 @@ class Textures:
         donnees = chemin.read_bytes()
         pos = 8
         largeur = hauteur = 0
+        color_type = 6
         idat = bytearray()
         while pos < len(donnees):
             longueur, type_chunk = struct.unpack(">I4s", donnees[pos:pos + 8])
             contenu = donnees[pos + 8:pos + 8 + longueur]
             pos += 12 + longueur
             if type_chunk == b"IHDR":
-                largeur, hauteur = struct.unpack(">II", contenu[:8])
+                largeur, hauteur, _, color_type = struct.unpack(">IIBB", contenu[:10])
             elif type_chunk == b"IDAT":
                 idat.extend(contenu)
             elif type_chunk == b"IEND":
                 break
 
         brut = zlib.decompress(bytes(idat))
-        bpp = 4
+        bpp = 3 if color_type == 2 else 4
+        mode_couleur = "RGB" if color_type == 2 else "RGBA"
         stride = largeur * bpp
         pixels = bytearray(hauteur * stride)
         i = 0
@@ -81,7 +83,7 @@ class Textures:
                     val = (val + pr) & 0xFF
                 pixels[ligne_debut + x] = val
 
-        return pygame.image.frombytes(bytes(pixels), (largeur, hauteur), "RGBA")
+        return pygame.image.frombytes(bytes(pixels), (largeur, hauteur), mode_couleur)
 
     @classmethod
     def get_image(cls, nom: str, taille: tuple[int, int], recadrer: bool = False,

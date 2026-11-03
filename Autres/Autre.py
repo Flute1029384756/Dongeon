@@ -32,6 +32,7 @@ SPRITE_COEUR_PLEIN = "ui_heart_full"
 SPRITE_COEUR_DEMI = "ui_heart_half"
 SPRITE_COEUR_VIDE = "ui_heart_empty"
 SPRITE_EPEE = "weapon_knight_sword"
+SPRITE_CARTE_DECK = "carte_deck"
 SPRITE_ENTITEE_DEFAUT = "knight_m_idle_anim_f0"
 SPRITES_AVENTURIER_IDLE = [
     "knight_m_idle_anim_f0",
@@ -61,6 +62,12 @@ SPRITES_GOBLIN = [
     "goblin_idle_anim_f1",
     "goblin_idle_anim_f2",
     "goblin_idle_anim_f3",
+]
+SPRITES_ARAIGNEE_VENIMEUSE = [
+    "SpiderPack/IdlePurple2/SpiderIdleSide1",
+    "SpiderPack/IdlePurple2/SpiderIdleSide2",
+    "SpiderPack/IdlePurple2/SpiderIdleSide3",
+    "SpiderPack/IdlePurple2/SpiderIdleSide4",
 ]
 
 # Identifiants des managers
@@ -117,6 +124,7 @@ COIN_BAS_GAUCHE, TRIANGLE_GAUCHE, GAUCHE = 3, 3, 3
 # Types de monstres
 ARAIGNEE = 0
 GOBELIN = 1
+ARAIGNEE_VENIMEUSE = 2
 
 # Endurance et récupération
 DELAI_RECUP_ENDURANCE = 2000  # Temps en ms pour récupérer 1 point d'endurance
@@ -132,10 +140,13 @@ STAT_DEGAT = 1
 STAT_VITESSE_FRAPPE = 2
 
 PV_ARAIGNEE_DEFAUT = 12
+PV_ARAIGNEE_VENIMEUSE_DEFAUT = 6
 PV_GOBELIN_DEFAUT = 5
 DEGAT_ARAIGNEE_DEFAUT = 2
+DEGAT_ARAIGNEE_VENIMEUSE_DEFAUT = 1
 DEGAT_GOBELIN_DEFAUT = 2
 VITESSE_FRAPPE_ARAIGNEE_DEFAUT = 1500
+VITESSE_FRAPPE_ARAIGNEE_VENIMEUSE_DEFAUT = 3000
 VITESSE_FRAPPE_GOBELIN_DEFAUT = 2000
 
 class Position:
@@ -198,7 +209,8 @@ class Var_global:
     FIN_REUSSITE_AVENTURIER = 1
     FIN_ESCAPE = 2
     FIN_PHASE_1 = 3
-    QUIT = 4
+    FIN_DEFAITE_AVENTURIER = 4
+    QUIT = 5
 
 class Etat_entitee:
     # Etat entitée

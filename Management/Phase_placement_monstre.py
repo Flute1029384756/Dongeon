@@ -2,7 +2,7 @@ import pygame
 from Autres.Autre import (
     Var_global,
     OPTIONS_CHOIX_NIVEAU,
-    RETOUR_MENU, ARAIGNEE, GOBELIN,
+    RETOUR_MENU, ARAIGNEE, GOBELIN, ARAIGNEE_VENIMEUSE,
 )
 from Classes_basiques.cellule import Tuile_depart, Tuile_arrivee, Cellule_vide
 from Management.Management_Monstres_global import Manag_monstres_global
@@ -18,7 +18,7 @@ class Manag_phase_1_placement_monstre:
         self.manag_monstre = manag_monstre
         self.level = 1
         self.ens_carte_possible = {
-            1: [ARAIGNEE, GOBELIN],
+            1: [ARAIGNEE, GOBELIN, ARAIGNEE_VENIMEUSE],
             2: [ARAIGNEE]
         }
 
@@ -65,15 +65,22 @@ class Manag_phase_1_placement_monstre:
 
         selection = 0
         indice_monstre = None
-        monstre_selectionne = self.manag_monstre.creer_objet_monstre(numero=ens_carte[selection])
-        grille = self.manag_plateau.get_plateau().grille
+        cartes_monstres = [self.manag_monstre.creer_objet_monstre(numero=num) for num in ens_carte]
+        monstre_selectionne = cartes_monstres[selection]
+        plateau = self.manag_plateau.get_plateau()
+        grille = plateau.grille
         tuiles_interdites = (Cellule_vide, Tuile_depart, Tuile_arrivee)
 
         pos_carte = None
         for pos, case_tuile in grille.items():
-            if not isinstance(case_tuile, tuiles_interdites):
+            if not isinstance(case_tuile, tuiles_interdites) and len(self.manag_monstre.verif_case_occupee_par_monstre(pos)) == 0:
                 pos_carte = list(pos)
                 break
+        if pos_carte is None:
+            for pos, case_tuile in grille.items():
+                if not isinstance(case_tuile, tuiles_interdites):
+                    pos_carte = list(pos)
+                    break
 
         if len(ens_carte) == 1:
             placement = True
@@ -96,9 +103,9 @@ class Manag_phase_1_placement_monstre:
                 if evenement.type == pygame.QUIT:
                     return Var_global.QUIT
                 if evenement.type == pygame.KEYUP:
-                    if evenement.key == pygame.K_ESCAPE:
-                        return Var_global.FIN_ESCAPE
                     if not placement:
+                        if evenement.key == pygame.K_ESCAPE:
+                            return Var_global.FIN_ESCAPE
                         if evenement.key == pygame.K_RETURN:
                             if pos_carte is None:
                                 return Var_global.FIN_ESCAPE
@@ -109,18 +116,40 @@ class Manag_phase_1_placement_monstre:
                             )
                             monstre_selectionne = self.manag_monstre.get_list_monstre()[ens_carte[selection]][indice_monstre]
                             placement = True
-                        if evenement.key == pygame.K_UP:
+                        if evenement.key == pygame.K_RIGHT:
                             selection = (selection + 1) % len(ens_carte)
-                            monstre_selectionne = self.manag_monstre.creer_objet_monstre(numero=ens_carte[selection])
-                        if evenement.key == pygame.K_DOWN:
+                            monstre_selectionne = cartes_monstres[selection]
+                        if evenement.key == pygame.K_LEFT:
                             selection = (selection - 1) % len(ens_carte)
-                            monstre_selectionne = self.manag_monstre.creer_objet_monstre(numero=ens_carte[selection])
+                            monstre_selectionne = cartes_monstres[selection]
                     else:
+                        if evenement.key == pygame.K_ESCAPE:
+                            self.manag_monstre.supprimer_monstre(monstre=monstre_selectionne)
+                            monstre_selectionne = cartes_monstres[selection]
+                            placement = False
+                            break
                         if evenement.key in deplacements:
                             dx, dy = deplacements[evenement.key]
-                            nouvelle_pos = (pos_carte[0] + dx, pos_carte[1] + dy)
-                            if nouvelle_pos in grille and not isinstance(grille[nouvelle_pos], tuiles_interdites):
-                                pos_carte[0], pos_carte[1] = nouvelle_pos
+                            x_courant, y_courant = pos_carte[0] + dx, pos_carte[1] + dy
+                            pos_trouvee = None
+
+                            while 0 <= x_courant < plateau.nb_cellule_colonne and 0 <= y_courant < plateau.nb_cellule_ligne:
+                                pos_test = (x_courant, y_courant)
+                                case = grille.get(pos_test)
+                                monstres_sur_case = [
+                                    m for m in self.manag_monstre.verif_case_occupee_par_monstre(pos_test)
+                                    if m is not monstre_selectionne
+                                ]
+                                if (case is not None
+                                        and not isinstance(case, tuiles_interdites)
+                                        and len(monstres_sur_case) == 0):
+                                    pos_trouvee = pos_test
+                                    break
+                                x_courant += dx
+                                y_courant += dy
+
+                            if pos_trouvee is not None:
+                                pos_carte[0], pos_carte[1] = pos_trouvee
                                 self.manag_monstre.placer_monstre(
                                     type_monstre=ens_carte[selection],
                                     nouvelle_pos=pos_carte,
@@ -134,6 +163,8 @@ class Manag_phase_1_placement_monstre:
                 manag_aventurier=self.manag_aventurier,
                 manag_monstre=self.manag_monstre,
                 monstres_a_afficher=[monstre_selectionne] if monstre_selectionne else None,
+                cartes_selection=cartes_monstres if not placement else None,
+                indice_carte_selectionnee=selection,
             )
             horloge.tick(60)
 
@@ -150,12 +181,7 @@ class Manag_phase_1_placement_monstre:
             self.manag_aventurier.placer_aventurier_pos(res, pos_origine=True)
 
 
-    def mode_creation(self):
-        choix = self.ecran_choix_niveau()
-        if choix in (Var_global.QUIT, Var_global.FIN_ESCAPE):
-            return choix
-
-        level = choix
+    def mode_creation(self, level):
         self.level = level
 
         self.creation_plateau()
