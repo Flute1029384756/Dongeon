@@ -526,7 +526,14 @@ class Affichage:
             )
             y_texte += 5 * taille_px_aide + 9
 
-    def dessiner_deck_cartes(self, ecran, x_zone: int, largeur_zone: int, hauteur_fenetre: int):
+    def dessiner_deck_cartes(
+        self,
+        ecran,
+        x_zone: int,
+        largeur_zone: int,
+        hauteur_fenetre: int,
+        afficher_touche_m: bool = False,
+    ):
         largeur_carte = 176
         hauteur_carte = 264
         nb_cartes_empilees = 6
@@ -581,6 +588,46 @@ class Affichage:
             border_radius=6,
         )
         pygame.draw.rect(ecran, (220, 185, 85), rect_dessus, width=3, border_radius=10)
+
+        if afficher_touche_m:
+            largeur_badge = 88
+            hauteur_badge = 72
+            rect_badge = pygame.Rect(0, 0, largeur_badge, hauteur_badge)
+            rect_badge.center = rect_dessus.center
+
+            rect_ombre_badge = rect_badge.move(0, 4)
+            pygame.draw.rect(ecran, (8, 6, 12), rect_ombre_badge, border_radius=12)
+            pygame.draw.rect(ecran, (28, 22, 38), rect_badge, border_radius=12)
+            pygame.draw.rect(ecran, (255, 215, 80), rect_badge, width=3, border_radius=12)
+            pygame.draw.rect(
+                ecran,
+                (160, 130, 60),
+                rect_badge.inflate(-10, -10),
+                width=1,
+                border_radius=8,
+            )
+
+            motif_m_large = ["10001", "11011", "10101", "10001", "10001"]
+            taille_px_m = 8
+            largeur_m = len(motif_m_large[0]) * taille_px_m
+            hauteur_m = len(motif_m_large) * taille_px_m
+            x_m = rect_badge.centerx - largeur_m // 2
+            y_m = rect_badge.centery - hauteur_m // 2
+
+            for dx, dy, couleur in [(3, 3, (12, 10, 16)), (0, 0, (255, 235, 130))]:
+                for lig_idx, ligne in enumerate(motif_m_large):
+                    for col_idx, bit in enumerate(ligne):
+                        if bit == "1":
+                            pygame.draw.rect(
+                                ecran,
+                                couleur,
+                                (
+                                    x_m + col_idx * taille_px_m + dx,
+                                    y_m + lig_idx * taille_px_m + dy,
+                                    taille_px_m,
+                                    taille_px_m,
+                                ),
+                            )
 
     def dessiner_cartes_selection_monstre(self, ecran, plateau, cartes_monstres: list, selection: int):
         if not cartes_monstres:
@@ -669,7 +716,8 @@ class Affichage:
 
     def dessiner(self, manag_Plateau: Manag_Plateau, manag_aventurier: Manag_aventurier,
                  manag_monstre: Manag_monstres_global, monstres_a_afficher: list = None,
-                 cartes_selection: list = None, indice_carte_selectionnee: int = 0):
+                 cartes_selection: list = None, indice_carte_selectionnee: int = 0,
+                 afficher_touche_m: bool = False):
         # fond cellule
         aventurier = manag_aventurier.get_aventurier()
         plateau = manag_Plateau.get_plateau()
@@ -788,6 +836,7 @@ class Affichage:
             x_droite,
             largeur_zone_droite,
             plateau.hauteur_fenetre,
+            afficher_touche_m=afficher_touche_m or (monstres_a_afficher is not None),
         )
 
         # update

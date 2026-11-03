@@ -57,6 +57,7 @@ class Manag_phase_1_placement_monstre:
     def selection_carte_placer(self):
         horloge = pygame.time.Clock()
         placement = False
+        tirage = False
 
         ens_carte = self.ens_carte_possible[self.level]
 
@@ -103,9 +104,16 @@ class Manag_phase_1_placement_monstre:
                 if evenement.type == pygame.QUIT:
                     return Var_global.QUIT
                 if evenement.type == pygame.KEYUP:
-                    if not placement:
+                    if not tirage:
+                        if evenement.key == pygame.K_m:
+                            tirage = True
                         if evenement.key == pygame.K_ESCAPE:
                             return Var_global.FIN_ESCAPE
+                    elif not placement and tirage:
+                        if evenement.key == pygame.K_m:
+                            tirage = False
+                        if evenement.key == pygame.K_ESCAPE:
+                            tirage = False
                         if evenement.key == pygame.K_RETURN:
                             if pos_carte is None:
                                 return Var_global.FIN_ESCAPE
@@ -122,7 +130,7 @@ class Manag_phase_1_placement_monstre:
                         if evenement.key == pygame.K_LEFT:
                             selection = (selection - 1) % len(ens_carte)
                             monstre_selectionne = cartes_monstres[selection]
-                    else:
+                    elif placement and tirage:
                         if evenement.key == pygame.K_ESCAPE:
                             self.manag_monstre.supprimer_monstre(monstre=monstre_selectionne)
                             monstre_selectionne = cartes_monstres[selection]
@@ -163,8 +171,9 @@ class Manag_phase_1_placement_monstre:
                 manag_aventurier=self.manag_aventurier,
                 manag_monstre=self.manag_monstre,
                 monstres_a_afficher=[monstre_selectionne] if monstre_selectionne else None,
-                cartes_selection=cartes_monstres if not placement else None,
+                cartes_selection=cartes_monstres if not placement and tirage else None,
                 indice_carte_selectionnee=selection,
+                afficher_touche_m=True,
             )
             horloge.tick(60)
 
