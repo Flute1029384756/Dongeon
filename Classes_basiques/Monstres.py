@@ -12,18 +12,23 @@ from Autres.Autre import (
     DEGAT_ARAIGNEE_VENIMEUSE_DEFAUT,
     VITESSE_FRAPPE_ARAIGNEE_VENIMEUSE_DEFAUT,
     PV_ARAIGNEE_VENIMEUSE_DEFAUT,
+    COUT_MONSTRE_DEFAUT, COUT_ARAIGNEE, COUT_ARAIGNEE_VENIMEUSE, COUT_GOBELIN,
 )
 from Classes_basiques.Entitee import Entitee
 
 class Monstres(Entitee):
     def __init__(self, pv:int, level:int, x:int, y:int,
-                 degat_inflige:int, vitesse_frappe:int, endurance:int, consommation_arme:int):
+                 degat_inflige:int, vitesse_frappe:int, endurance:int, consommation_arme:int, cout:int=COUT_MONSTRE_DEFAUT):
         super().__init__(pv, level, x, y,
                          degat_inflige=degat_inflige, vitesse_frappe=vitesse_frappe, endurance=endurance, consommation_arme=consommation_arme)
         self.sprite = SPRITE_MONSTRE_DEFAUT
+        self.cout = cout
+
+    def obtenir_prix(self):
+        return self.cout
 
 class Araignee(Monstres):
-    def __init__(self, x:int, y:int, level:int):
+    def __init__(self, x:int, y:int, level:int, cout:int=COUT_ARAIGNEE):
         super().__init__(
             pv=PV_ARAIGNEE_DEFAUT,
             level=level,
@@ -32,7 +37,8 @@ class Araignee(Monstres):
             degat_inflige=DEGAT_ARAIGNEE_DEFAUT,
             vitesse_frappe=VITESSE_FRAPPE_ARAIGNEE_DEFAUT,
             endurance=10,
-            consommation_arme=1
+            consommation_arme=1,
+            cout=cout,
         )
         self.nom = "ARAIGNEE"
         self.sprite = SPRITES_ARAIGNEE
@@ -40,7 +46,7 @@ class Araignee(Monstres):
 
 class Araignee_venimeuse(Araignee):
     def __init__(self, x:int, y:int, level:int):
-        super().__init__(x=x, y=y, level=level)
+        super().__init__(x=x, y=y, level=level, cout=COUT_ARAIGNEE_VENIMEUSE)
         self.nom = "ARAIGNEE VENIMEUSE"
         self.sprite = SPRITES_ARAIGNEE_VENIMEUSE
 
@@ -58,7 +64,8 @@ class Gobelin(Monstres):
             degat_inflige=DEGAT_GOBELIN_DEFAUT,
             vitesse_frappe=VITESSE_FRAPPE_GOBELIN_DEFAUT,
             endurance=3,
-            consommation_arme=1
+            consommation_arme=1,
+            cout=COUT_GOBELIN,
             )
         self.nom = "GOBELIN"
         self.sprite = SPRITES_GOBLIN

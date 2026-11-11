@@ -4,6 +4,7 @@ from Autres.Autre import (
     MANAG_AVENTURIER,
     MANAG_PLATEAU,
     MANAG_MONSTRES_GLOBAL,
+    MANAG_PHASE1_MONSTRE,
     DELAI_ACTION,
     Etat_entitee
 )
@@ -34,7 +35,8 @@ class Manag_phase2:
 
             self.affichage.dessiner(manag_Plateau=Management_secondaire[MANAG_PLATEAU],
                                     manag_aventurier=Management_secondaire[MANAG_AVENTURIER],
-                                    manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL])
+                                    manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL],
+                                    argent_joueur=Management_secondaire[MANAG_PHASE1_MONSTRE].argent_joueur)
 
             maintenant = pygame.time.get_ticks()
             if maintenant - dernier_tour >= DELAI_ACTION:
@@ -44,7 +46,8 @@ class Manag_phase2:
                     if self.Manag_combat.combat() == Etat_entitee.MORT:
                         self.affichage.dessiner(manag_Plateau=Management_secondaire[MANAG_PLATEAU],
                                                 manag_aventurier=Management_secondaire[MANAG_AVENTURIER],
-                                                manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL])
+                                                manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL],
+                                                argent_joueur=Management_secondaire[MANAG_PHASE1_MONSTRE].argent_joueur)
                         return Var_global.FIN_DEFAITE_AVENTURIER
                 else:
                     res = Management_secondaire[MANAG_AVENTURIER].deplacer_aventurier(

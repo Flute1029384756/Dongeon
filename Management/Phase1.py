@@ -4,6 +4,7 @@ from Autres.Autre import (
     MANAG_AVENTURIER,
     MANAG_PLATEAU,
     MANAG_MONSTRES_GLOBAL,
+    MANAG_PHASE1_MONSTRE,
     NB_OPTION_MAX,
     NB_PIECE_MAX,
     ARAIGNEE, Var_global,
@@ -128,7 +129,8 @@ class Manag_phase1:
 
             self.affichage.dessiner(manag_Plateau=Management_secondaire[MANAG_PLATEAU],
                                     manag_aventurier=Management_secondaire[MANAG_AVENTURIER],
-                                    manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL]
+                                    manag_monstre=Management_secondaire[MANAG_MONSTRES_GLOBAL],
+                                    argent_joueur=Management_secondaire[MANAG_PHASE1_MONSTRE].argent_joueur
                                     )
             if mode_ecriture:
 

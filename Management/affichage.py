@@ -11,6 +11,7 @@ from Autres.Autre import (
     SPRITE_COEUR_VIDE,
     SPRITE_EPEE,
     SPRITE_CARTE_DECK,
+    SPRITES_PIECE,
     SPRITES_AVENTURIER_IDLE,
     DELAI_ANIMATION_SPRITE,
     OPTIONS_MENU_DEBUT,
@@ -74,6 +75,7 @@ GLYPHES_PIXEL = {
 class Affichage:
     def __init__(self):
         self._qfond_menu_surface = None
+        self.argent_joueur = 30
 
     def _dessiner_texte_pixel(self, ecran, texte: str, x: int, y: int, taille_pixel: int = 3, couleur=Color.BLANC):
         curseur_x = x
@@ -237,10 +239,12 @@ class Affichage:
         y_depart: int = 16,
         taille_sprite: tuple[int, int] = (52, 68),
         retourner_gauche: bool = False,
+        afficher_prix: bool = False,
     ):
         marge = 16
         largeur_panneau = max(200, largeur_zone - 2 * marge)
-        hauteur_panneau = 248
+        a_prix = afficher_prix and hasattr(entitee, "obtenir_prix")
+        hauteur_panneau = 294 if a_prix else 248
         panneau_rect = pygame.Rect(x_zone + marge, y_depart, largeur_panneau, hauteur_panneau)
 
         # Fond et bordure du panneau de profil
@@ -417,9 +421,9 @@ class Affichage:
 
         vitesse_sec = vitesse_ms / 1000
         texte_vitesse = (
-            f"VIT : {int(vitesse_sec)}S"
+            f"VIT : {int(vitesse_sec)}"
             if vitesse_sec.is_integer()
-            else f"VIT : {vitesse_sec:.1f}S"
+            else f"VIT : {vitesse_sec:.1f}"
         )
         self._dessiner_texte_pixel(
             ecran,
@@ -475,27 +479,139 @@ class Affichage:
             endurance_max,
         )
 
-    def dessiner_profil_aventurier(self, ecran, aventurier, largeur_zone: int):
+        # Case du prix du monstre (uniquement lors du tirage)
+        if a_prix:
+            prix = entitee.obtenir_prix()
+            peut_acheter = self.argent_joueur >= prix
+            hauteur_case_prix = 38
+            case_prix_rect = pygame.Rect(
+                panneau_rect.x + 12,
+                case_endurance_rect.bottom + 8,
+                largeur_panneau - 24,
+                hauteur_case_prix,
+            )
+            pygame.draw.rect(ecran, (44, 38, 50), case_prix_rect, border_radius=6)
+            bord_case_prix = (220, 185, 85) if peut_acheter else (210, 80, 80)
+            pygame.draw.rect(ecran, bord_case_prix, case_prix_rect, width=2, border_radius=6)
+
+            indice_piece = (pygame.time.get_ticks() // DELAI_ANIMATION_SPRITE) % len(SPRITES_PIECE)
+            img_piece = Textures.get_image(
+                SPRITES_PIECE[indice_piece],
+                (22, 22),
+                recadrer=True,
+            )
+            ecran.blit(
+                img_piece,
+                img_piece.get_rect(center=(case_prix_rect.x + 22, case_prix_rect.centery)),
+            )
+
+            texte_prix = f"PRIX : {prix}"
+            couleur_texte_prix = (255, 215, 80) if peut_acheter else (240, 90, 90)
+            self._dessiner_texte_pixel(
+                ecran,
+                texte_prix,
+                case_prix_rect.x + 42,
+                case_prix_rect.centery - 7,
+                taille_pixel=3,
+                couleur=couleur_texte_prix,
+            )
+
+    def dessiner_argent_joueur(
+        self,
+        ecran,
+        argent_joueur: int,
+        largeur_zone: int,
+        x_zone: int = 0,
+        y_depart: int = 16,
+    ):
+        marge = 16
+        largeur_panneau = max(200, largeur_zone - 2 * marge)
+        hauteur_panneau = 76
+        panneau_rect = pygame.Rect(x_zone + marge, y_depart, largeur_panneau, hauteur_panneau)
+
+        pygame.draw.rect(ecran, (28, 25, 32), panneau_rect, border_radius=8)
+        pygame.draw.rect(ecran, (220, 185, 85), panneau_rect, width=2, border_radius=8)
+
+        taille_cadre_icone = 52
+        cadre_icone = pygame.Rect(
+            panneau_rect.x + 12,
+            panneau_rect.y + 12,
+            taille_cadre_icone,
+            taille_cadre_icone,
+        )
+        pygame.draw.rect(ecran, (48, 42, 54), cadre_icone, border_radius=6)
+        pygame.draw.rect(ecran, (255, 215, 80), cadre_icone, width=2, border_radius=6)
+
+        indice_piece = (pygame.time.get_ticks() // DELAI_ANIMATION_SPRITE) % len(SPRITES_PIECE)
+        img_piece = Textures.get_image(
+            SPRITES_PIECE[indice_piece],
+            (28, 28),
+            recadrer=True,
+        )
+        ecran.blit(img_piece, img_piece.get_rect(center=cadre_icone.center))
+
+        x_info = cadre_icone.right + 14
+        self._dessiner_texte_pixel(
+            ecran,
+            "ARGENT",
+            x_info,
+            cadre_icone.top + 4,
+            taille_pixel=2,
+            couleur=(190, 182, 205),
+        )
+
+        texte_argent = str(max(0, argent_joueur))
+        taille_px_argent = 5
+        y_argent = cadre_icone.top + 22
+        self._dessiner_texte_pixel(
+            ecran,
+            texte_argent,
+            x_info + 2,
+            y_argent + 2,
+            taille_pixel=taille_px_argent,
+            couleur=(12, 10, 16),
+        )
+        self._dessiner_texte_pixel(
+            ecran,
+            texte_argent,
+            x_info,
+            y_argent,
+            taille_pixel=taille_px_argent,
+            couleur=(255, 215, 80),
+        )
+
+    def dessiner_profil_aventurier(self, ecran, aventurier, largeur_zone: int, hauteur_fenetre: int = 800):
+        hauteur_panneau = 248
+        marge_bas = 16
         self.dessiner_profil_entitee(
             ecran=ecran,
             entitee=aventurier,
             x_zone=0,
             largeur_zone=largeur_zone,
-            y_depart=16,
+            y_depart=max(16, hauteur_fenetre - hauteur_panneau - marge_bas),
             taille_sprite=(52, 68),
             retourner_gauche=False,
         )
 
-    def dessiner_profil_monstres_combat(self, ecran, monstres_combattus: list, x_zone: int, largeur_zone: int):
+    def dessiner_profil_monstres_combat(
+        self,
+        ecran,
+        monstres_combattus: list,
+        x_zone: int,
+        largeur_zone: int,
+        afficher_prix: bool = False,
+    ):
+        espacement_panneau = 308 if afficher_prix else 262
         for idx, monstre in enumerate(monstres_combattus):
             self.dessiner_profil_entitee(
                 ecran=ecran,
                 entitee=monstre,
                 x_zone=x_zone,
                 largeur_zone=largeur_zone,
-                y_depart=16 + idx * 262,
+                y_depart=16 + idx * espacement_panneau,
                 taille_sprite=(58, 50),
                 retourner_gauche=monstre.get_retourner_gauche(),
+                afficher_prix=afficher_prix,
             )
 
     def dessiner_aide_placement_monstre(self, ecran, x_zone: int, largeur_zone: int, y_depart: int = 278):
@@ -645,7 +761,7 @@ class Affichage:
         # Sélectionne jusqu'à 3 cartes à afficher côte à côte au centre
         nb_cartes = min(3, len(cartes_monstres))
         largeur_carte = 288
-        hauteur_carte = 360
+        hauteur_carte = 382
         espacement = 28
         largeur_totale = nb_cartes * largeur_carte + (nb_cartes - 1) * espacement
         x_depart_cartes = plateau.decalage_x + (plateau.largeur - largeur_totale) // 2
@@ -703,6 +819,7 @@ class Affichage:
                 y_depart=y_carte + 66,
                 taille_sprite=(58, 50),
                 retourner_gauche=monstre.get_retourner_gauche(),
+                afficher_prix=True,
             )
 
             # Rivets aux 4 coins de la carte
@@ -717,7 +834,9 @@ class Affichage:
     def dessiner(self, manag_Plateau: Manag_Plateau, manag_aventurier: Manag_aventurier,
                  manag_monstre: Manag_monstres_global, monstres_a_afficher: list = None,
                  cartes_selection: list = None, indice_carte_selectionnee: int = 0,
-                 afficher_touche_m: bool = False):
+                 afficher_touche_m: bool = False, argent_joueur: int = None):
+        if argent_joueur is not None:
+            self.argent_joueur = argent_joueur
         # fond cellule
         aventurier = manag_aventurier.get_aventurier()
         plateau = manag_Plateau.get_plateau()
@@ -810,24 +929,30 @@ class Affichage:
         pygame.draw.line(ecran, Color.BLANC, (x_gauche, 0), (x_gauche, plateau.hauteur_fenetre), 2)
         pygame.draw.line(ecran, Color.BLANC, (x_droite, 0), (x_droite, plateau.hauteur_fenetre), 2)
 
-        # profil de l'aventurier en haut à gauche
-        self.dessiner_profil_aventurier(ecran, aventurier, x_gauche)
+        # argent du joueur toujours affiché en haut à gauche
+        self.dessiner_argent_joueur(ecran, self.argent_joueur, x_gauche)
+
+        # profil de l'aventurier en bas à gauche
+        self.dessiner_profil_aventurier(ecran, aventurier, x_gauche, plateau.hauteur_fenetre)
 
         # profil du monstre combattu (ou sélectionné lors du placement) en haut à droite
         largeur_zone_droite = plateau.largeur_fenetre - x_droite
         monstres_droite = monstres_a_afficher if monstres_a_afficher is not None else monstres_combattus
+        en_tirage = bool(cartes_selection)
         if monstres_droite:
             self.dessiner_profil_monstres_combat(
                 ecran,
                 monstres_droite,
                 x_droite,
                 largeur_zone_droite,
+                afficher_prix=en_tirage,
             )
             if monstres_a_afficher is not None:
                 self.dessiner_aide_placement_monstre(
                     ecran,
                     x_droite,
                     largeur_zone_droite,
+                    y_depart=324 if en_tirage else 278,
                 )
 
         # deck de cartes toujours affiché en bas à droite

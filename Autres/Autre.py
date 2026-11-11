@@ -33,6 +33,12 @@ SPRITE_COEUR_DEMI = "ui_heart_half"
 SPRITE_COEUR_VIDE = "ui_heart_empty"
 SPRITE_EPEE = "weapon_knight_sword"
 SPRITE_CARTE_DECK = "carte_deck"
+SPRITES_PIECE = [
+    "coin_anim_f0",
+    "coin_anim_f1",
+    "coin_anim_f2",
+    "coin_anim_f3",
+]
 SPRITE_ENTITEE_DEFAUT = "knight_m_idle_anim_f0"
 SPRITES_AVENTURIER_IDLE = [
     "knight_m_idle_anim_f0",
@@ -148,6 +154,10 @@ DEGAT_GOBELIN_DEFAUT = 2
 VITESSE_FRAPPE_ARAIGNEE_DEFAUT = 1500
 VITESSE_FRAPPE_ARAIGNEE_VENIMEUSE_DEFAUT = 3000
 VITESSE_FRAPPE_GOBELIN_DEFAUT = 2000
+COUT_MONSTRE_DEFAUT = 1
+COUT_ARAIGNEE = 4
+COUT_ARAIGNEE_VENIMEUSE = 6
+COUT_GOBELIN = 1
 
 class Position:
     def __init__(self, x:int, y:int):

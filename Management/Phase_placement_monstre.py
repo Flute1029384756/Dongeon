@@ -17,7 +17,8 @@ class Manag_phase_1_placement_monstre:
         self.manag_aventurier = manag_aventurier
         self.manag_monstre = manag_monstre
         self.level = 1
-        self.ens_carte_possible = {
+        self.argent_joueur = 30
+        self.ens_carte_possible_cout = {
             1: [ARAIGNEE, GOBELIN, ARAIGNEE_VENIMEUSE],
             2: [ARAIGNEE]
         }
@@ -59,7 +60,7 @@ class Manag_phase_1_placement_monstre:
         placement = False
         tirage = False
 
-        ens_carte = self.ens_carte_possible[self.level]
+        ens_carte = self.ens_carte_possible_cout[self.level]
 
         if len(ens_carte) == 0:
             return Var_global.CONTINUE
@@ -67,7 +68,7 @@ class Manag_phase_1_placement_monstre:
         selection = 0
         indice_monstre = None
         cartes_monstres = [self.manag_monstre.creer_objet_monstre(numero=num) for num in ens_carte]
-        monstre_selectionne = cartes_monstres[selection]
+        monstre_selectionne = None
         plateau = self.manag_plateau.get_plateau()
         grille = plateau.grille
         tuiles_interdites = (Cellule_vide, Tuile_depart, Tuile_arrivee)
@@ -106,15 +107,20 @@ class Manag_phase_1_placement_monstre:
                 if evenement.type == pygame.KEYUP:
                     if not tirage:
                         if evenement.key == pygame.K_m:
+                            monstre_selectionne = cartes_monstres[selection]
                             tirage = True
                         if evenement.key == pygame.K_ESCAPE:
                             return Var_global.FIN_ESCAPE
+                        if evenement.key == pygame.K_SPACE:
+                            return Var_global.CONTINUE
                     elif not placement and tirage:
                         if evenement.key == pygame.K_m:
+                            monstre_selectionne = None
                             tirage = False
                         if evenement.key == pygame.K_ESCAPE:
+                            monstre_selectionne = None
                             tirage = False
-                        if evenement.key == pygame.K_RETURN:
+                        if evenement.key == pygame.K_RETURN and cartes_monstres[selection].obtenir_prix() <= self.argent_joueur:
                             if pos_carte is None:
                                 return Var_global.FIN_ESCAPE
                             indice_monstre = self.manag_monstre.creation_nouveau_monstre(
@@ -163,8 +169,14 @@ class Manag_phase_1_placement_monstre:
                                     nouvelle_pos=pos_carte,
                                     indice=indice_monstre,
                                 )
-                        if evenement.key in (pygame.K_RETURN, pygame.K_SPACE):
-                            return Var_global.CONTINUE
+                        if len(self.manag_monstre.verif_case_occupee_par_monstre(pos_carte)) == 1:
+                            if evenement.key == pygame.K_SPACE:
+                                self.argent_joueur -= cartes_monstres[selection].obtenir_prix()
+                                return Var_global.CONTINUE
+                            if evenement.key == pygame.K_RETURN:
+                                self.argent_joueur -= cartes_monstres[selection].obtenir_prix()
+                                placement = False
+
 
             self.affichage.dessiner(
                 manag_Plateau=self.manag_plateau,
@@ -174,6 +186,7 @@ class Manag_phase_1_placement_monstre:
                 cartes_selection=cartes_monstres if not placement and tirage else None,
                 indice_carte_selectionnee=selection,
                 afficher_touche_m=True,
+                argent_joueur=self.argent_joueur,
             )
             horloge.tick(60)
 
